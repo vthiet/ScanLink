@@ -97,16 +97,16 @@ flowchart LR
     Guest([Khách vãng lai])
 
     subgraph Sub-Goal 1: Số hóa
-        UC1(Quét và Khử méo ảnh)
-        UC2(Áp dụng bộ lọc màu)
-        UC3(Nhận dạng chữ OCR)
-        UC4(Đóng gói file PDF)
+        UC1(1. Quét và Khử méo ảnh)
+        UC2(2. Áp dụng bộ lọc màu)
+        UC3(3. Nhận dạng chữ OCR)
+        UC4(4. Đóng gói file PDF)
     end
 
     subgraph Sub-Goal 2 & 3: Cloud & Share 
-        UC5(Upload file lên Cloud)
-        UC6(Tạo Public Link)
-        UC7(Chia sẻ nội bộ - Viewer/Editor)
+        UC5(5. Upload file lên Cloud)
+        UC6(6. Tạo Public Link)
+        UC7(7. Chia sẻ nội bộ - Viewer/Editor)
     end
 
     Guest --> UC1 & UC2 & UC3 & UC4
