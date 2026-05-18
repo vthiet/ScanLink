@@ -63,6 +63,9 @@ dependencies {
     // vthiet: Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    // vthiet: Hilt + Jetpack Compose + ViewModel
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
