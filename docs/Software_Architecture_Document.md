@@ -33,18 +33,18 @@ Hệ thống **ScanLink** là nền tảng số hóa và chia sẻ tài liệu g
 Tài liệu này sử dụng mô hình **4+1 View Model** để mô tả kiến trúc dưới các góc nhìn khác nhau của các bên liên quan (Stakeholders).
 
 ``` mermaid
-graph TD  
-    subgraph 4\_plus\_1\_Views [Mô hình Kiến trúc 4+1 View]  
-        V1[Logical View - Góc nhìn Logic]  
-        V2[Process View - Góc nhìn Tiến trình]  
-        V3[Development View - Góc nhìn Phát triển]  
-        V4[Physical View - Góc nhìn Vật lý]  
-        V5((Scenarios / Use Cases))  
-          
-        V5 --> V1  
-        V5 --> V2  
-        V5 --> V3  
-        V5 --> V4  
+graph TD
+    subgraph 4_plus_1_Views [Mô hình Kiến trúc 4+1 View]
+        V1[Logical View - Góc nhìn Logic]
+        V2[Process View - Góc nhìn Tiến trình]
+        V3[Development View - Góc nhìn Phát triển]
+        V4[Physical View - Góc nhìn Vật lý]
+        V5((Scenarios / Use Cases))
+        
+        V5 -.-> V1
+        V5 -.-> V2
+        V5 -.-> V3
+        V5 -.-> V4
     end
 
 ```
@@ -58,32 +58,33 @@ Góc nhìn logic mô tả cấu trúc phân rã chức năng và sơ đồ khố
 Ứng dụng di động được phân rã theo mô hình **Feature-First** phối hợp **Clean Architecture**:
 
 ``` mermaid
-graph LR  
-    subgraph UI\_Layer [Presentation Layer]  
-        View[Activity / Fragment]  
-        VM[ViewModel / UI State]  
-    end  
-  
-    subgraph Business\_Layer [Domain Layer - Pure Kotlin]  
-        UC[Use Cases / Interactors]  
-        Model[Domain Entities]  
-        Repo\_Interface[Repository Interfaces]  
-    end  
-  
-    subgraph Infrastructure\_Layer [Data Layer]  
-        Repo\_Impl[Repository Implementations]  
-        Local\_DB[(Room Database)]  
-        Remote\_API[Retrofit API Service]  
-        CV\_Engine[OpenCV / ML Kit Engine]  
-    end  
-  
-    View -->|Observe State| VM  
-    VM -->|Dispatches Intent| UC  
-    UC -->|Invokes| Repo\_Interface  
-    Repo\_Impl --|>| Repo\_Interface  
-    Repo\_Impl --> Local\_DB  
-    Repo\_Impl --> Remote\_API  
-    Repo\_Impl --> CV\_Engine
+graph LR
+    subgraph UI_Layer [Presentation Layer]
+        View[Activity / Fragment]
+        VM[ViewModel / UI State]
+    end
+
+    subgraph Business_Layer [Domain Layer - Pure Kotlin]
+        UC[Use Cases / Interactors]
+        Model[Domain Entities]
+        Repo_Interface[Repository Interfaces]
+    end
+
+    subgraph Infrastructure_Layer [Data Layer]
+        Repo_Impl[Repository Implementations]
+        Local_DB[(Room Database)]
+        Remote_API[Retrofit API Service]
+        CV_Engine[OpenCV / ML Kit Engine]
+    end
+
+    View -->|Observe State| VM
+    VM -->|Dispatches Intent| UC
+    UC -->|Invokes| Repo_Interface
+    Repo_Impl --|Implements|-> Repo_Interface
+    Repo_Impl --> Local_DB
+    Repo_Impl --> Remote_API
+    Repo_Impl --> CV_Engine
+
 
 ```
 
@@ -116,19 +117,19 @@ Khi một thiết bị di động gửi yêu cầu Upload tệp PDF lớn lên C
 <!-- end list -->
 
 ``` mermaid
-sequenceDiagram  
-    autonumber  
-    participant Client as ScanLink Mobile App  
-    participant Carrier as Carrier Thread (CPU)  
-    participant Virtual as Virtual Thread (JVM Heap)  
-    participant S3 as AWS S3 Storage  
-  
-    Client->>Carrier: POST /api/v1/documents (Upload)  
-    Carrier->>Virtual: Khởi tạo Virtual Thread xử lý request  
-    Virtual->>S3: Ghi luồng dữ liệu (I/O Blocking)  
-    Note over Carrier: Carrier Thread được giải phóng ngay lập lập tức<br/>để phục vụ Request khác  
-    S3-->>Virtual: Ghi tệp hoàn tất (I/O Resume)  
-    Carrier->>Virtual: Gán lại Carrier Thread trống để chạy tiếp  
+sequenceDiagram
+    autonumber
+    participant Client as ScanLink Mobile App
+    participant Carrier as Carrier Thread (CPU)
+    participant Virtual as Virtual Thread (JVM Heap)
+    participant S3 as AWS S3 Storage
+
+    Client->>Carrier: POST /api/v1/documents (Upload)
+    Carrier->>Virtual: Khởi tạo Virtual Thread xử lý request
+    Virtual->>S3: Ghi luồng dữ liệu (I/O Blocking)
+    Note over Carrier: Carrier Thread được giải phóng ngay lập tức<br/>để phục vụ Request khác
+    S3-->>Virtual: Ghi tệp hoàn tất (I/O Resume)
+    Carrier->>Virtual: Gán lại Carrier Thread trống để chạy tiếp
     Virtual-->>Client: Trả về HTTP 201 Created
 
 ```
@@ -149,35 +150,35 @@ Góc nhìn phát triển định hình cách tổ chức mã nguồn thực tế
 Góc nhìn vật lý mô tả sơ đồ triển khai phần cứng, cấu hình mạng và sự phân bổ của các thành phần phần mềm trên môi trường thực tế.
 
 ``` mermaid
-graph TD  
-    subgraph Client\_Environment [Mobile Environment]  
-        Android[Android Smartphone <br/> API Level 26+]  
-    end  
-  
-    subgraph Public\_Network [Internet Gateway]  
-        LB[Reverse Proxy / Nginx & SSL TLS 1.3]  
-    end  
-  
-    subgraph Firebase\_Cloud [Google Identity Provider]  
-        FB[Firebase Authentication Service]  
-    end  
-  
-    subgraph Enterprise\_Cloud [Docker Containerized Environment]  
-        subgraph K8S [Kubernetes Cluster / Docker Swarm]  
-            APP\_1[Spring Boot Instance 1 <br/> JDK 25 / Tomcat]  
-            APP\_2[Spring Boot Instance 2 <br/> JDK 25 / Tomcat]  
-        end  
-          
-        DB[(PostgreSQL Database)]  
-        S3[Object Storage <br/> AWS S3 / MinIO]  
-    end  
-  
-    Android -->|1. Xác thực bằng SDK| FB  
-    Android -->|2. Gọi API kèm Token| LB  
-    LB -->|Cân bằng tải Round-Robin| APP\_1 & APP\_2  
-    APP\_1 & APP\_2 -->|3. Xác thực Token Admin SDK| FB  
-    APP\_1 & APP\_2 -->|4. Lưu Metadata| DB  
-    APP\_1 & APP\_2 -->|5. Lưu trữ File PDF| S3
+graph TD
+    subgraph Client_Environment [Mobile Environment]
+        Android[Android Smartphone <br/> API Level 26+]
+    end
+
+    subgraph Public_Network [Internet Gateway]
+        LB[Reverse Proxy / Nginx & SSL TLS 1.3]
+    end
+
+    subgraph Firebase_Cloud [Google Identity Provider]
+        FB[Firebase Authentication Service]
+    end
+
+    subgraph Enterprise_Cloud [Docker Containerized Environment]
+        subgraph K8S [Kubernetes Cluster / Docker Swarm]
+            APP_1[Spring Boot Instance 1 <br/> JDK 25 / Tomcat]
+            APP_2[Spring Boot Instance 2 <br/> JDK 25 / Tomcat]
+        end
+        
+        DB[(PostgreSQL Database)]
+        S3[Object Storage <br/> AWS S3 / MinIO]
+    end
+
+    Android -->|1. Xác thực bằng SDK| FB
+    Android -->|2. Gọi API kèm Token| LB
+    LB -->|Cân bằng tải Round-Robin| APP_1 & APP_2
+    APP_1 & APP_2 -.->|3. Xác thực Token Admin SDK| FB
+    APP_1 & APP_2 -->|4. Lưu Metadata| DB
+    APP_1 & APP_2 -->|5. Lưu trữ File PDF| S3
 
 ```
 
