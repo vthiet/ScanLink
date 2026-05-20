@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.example.scanlink.features.authentication.presentation.viewmodels.AuthViewModel
 import com.example.scanlink.features.home.HomeScreen
 import com.example.scanlink.features.transfer.TransferScreen
 import com.example.scanlink.features.history.HistoryScreen
@@ -23,7 +24,7 @@ import com.example.scanlink.features.profile.ProfileScreen
 import com.example.scanlink.features.scan.ScanScreen
 
 @Composable
-fun MainScreen() {
+fun MainScreen(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
 
     Scaffold(

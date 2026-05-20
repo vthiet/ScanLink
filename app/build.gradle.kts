@@ -1,8 +1,12 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    // Use explicit plugin coordinates/versions for testing plugin-alias issues
+    id("com.android.application") version "9.2.1"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
+    id("com.google.devtools.ksp") version "2.3.8"
+    id("com.google.dagger.hilt.android") version "2.59.2"
+
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -47,6 +51,11 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
+
+    // Firebase dependencies - using explicit versions
+    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
+    implementation("com.google.firebase:firebase-analytics-ktx:21.6.1")
+
     implementation(libs.opencv)
     // Hiếu: New Dependency
     implementation(libs.androidx.navigation.compose)
@@ -63,9 +72,11 @@ dependencies {
     // vthiet: Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
     // vthiet: Hilt + Jetpack Compose + ViewModel
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -74,4 +85,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+
 }
