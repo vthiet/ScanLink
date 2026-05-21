@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.scanlink.core.sync.SyncManager
 import com.example.scanlink.core.ui.theme.ScanLinkTheme
 import com.example.scanlink.navigation.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
 
             UserScreen(viewModel = userViewModel)
         }
+        SyncManager.startSyncWorker(this)
 
     }
 }

@@ -4,6 +4,8 @@
 <!--  Hiếu: Permission open camera-->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" />
+<!--    Q internet-->
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name=".ScanLinkApp"

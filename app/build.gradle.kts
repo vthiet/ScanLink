@@ -74,4 +74,34 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Quickly : Room
+    implementation("androidx.room:room-runtime:2.8.0")
+    ksp("androidx.room:room-compiler:2.8.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+
+    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+
+    implementation("androidx.work:work-runtime-ktx:2.10.3")
+
+    implementation("com.google.dagger:hilt-android:2.57")
+    ksp("com.google.dagger:hilt-compiler:2.57")
+
+    implementation("com.google.firebase:firebase-auth:24.1.0")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+
+    // Gson Converter
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    // Gson
+    implementation("com.google.code.gson:gson:2.13.1")
+
+    //hilt-work
+    implementation("androidx.hilt:hilt-work:1.2.0")
+
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
+
 }
