@@ -8,7 +8,11 @@ fun FirebaseUser.toUserProfile(): UserEntity {
         uid = uid,
         email = email,
         displayName = displayName,
+        phoneNumber = phoneNumber,
         photoUrl = photoUrl?.toString(),
-        createdAt = metadata?.creationTimestamp
+        isEmailVerified = isEmailVerified,
+        providerId = providerId,
+        createdAt = metadata?.creationTimestamp,
+        updatedAt = metadata?.lastSignInTimestamp
     )
 }

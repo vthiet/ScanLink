@@ -8,10 +8,11 @@ interface AuthRepository {
         email: String,
         password: String,
         displayName: String? = null,
-        dateOfBirth: String? = null
+        dateOfBirth: String? = null,
+        gender: String? = null
     ): Result<UserEntity>
 
-    suspend fun login(email: String, password: String): Result<UserEntity>
+    suspend fun login(email: String, password: String): UserEntity
 
     fun logout()
 

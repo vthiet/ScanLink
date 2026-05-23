@@ -11,13 +11,13 @@ class RegisterUseCase @Inject constructor(
         email: String,
         password: String,
         displayName: String? = null,
-        dateOfBirth: String? = null
+        dateOfBirth: String? = null,
+        gender: String? = null
     ): Result<UserEntity> {
         return try {
-            return authRepository.register(email, password, displayName, dateOfBirth)
+            authRepository.register(email, password, displayName, dateOfBirth, gender)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 }
-

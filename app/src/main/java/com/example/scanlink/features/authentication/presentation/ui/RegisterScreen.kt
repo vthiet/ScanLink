@@ -62,6 +62,75 @@ fun RegisterScreen(
         )
 
         OutlinedTextField(
+            value = uiState.displayName,
+            onValueChange = { viewModel.updateDisplayName(it) },
+            label = { Text("Display Name") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            ),
+            isError = uiState.displayNameError != null,
+            enabled = uiState.authState !is AuthState.Loading
+        )
+        if (uiState.displayNameError != null) {
+            Text(
+                text = uiState.displayNameError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(bottom = 8.dp, start = 16.dp)
+            )
+        }
+
+        OutlinedTextField(
+            value = uiState.dateOfBirth,
+            onValueChange = { viewModel.updateDateOfBirth(it) },
+            label = { Text("Date Of Birth (YYYY-MM-DD)") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            ),
+            isError = uiState.dateOfBirthError != null,
+            enabled = uiState.authState !is AuthState.Loading
+        )
+        if (uiState.dateOfBirthError != null) {
+            Text(
+                text = uiState.dateOfBirthError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(bottom = 8.dp, start = 16.dp)
+            )
+        }
+
+        OutlinedTextField(
+            value = uiState.gender,
+            onValueChange = { viewModel.updateGender(it) },
+            label = { Text("Gender") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            ),
+            isError = uiState.genderError != null,
+            enabled = uiState.authState !is AuthState.Loading
+        )
+        if (uiState.genderError != null) {
+            Text(
+                text = uiState.genderError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(bottom = 8.dp, start = 16.dp)
+            )
+        }
+
+        OutlinedTextField(
             value = uiState.email,
             onValueChange = { viewModel.updateEmail(it) },
             label = { Text("Email") },
@@ -158,7 +227,15 @@ fun RegisterScreen(
         }
 
         Button(
-            onClick = { viewModel.register() },
+            onClick = {
+                viewModel.register(
+                    email = uiState.email,
+                    password = uiState.password,
+                    displayName = uiState.displayName,
+                    dateOfBirth = uiState.dateOfBirth,
+                    gender = uiState.gender
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -193,4 +270,3 @@ fun RegisterScreen(
         }
     }
 }
-

@@ -29,9 +29,15 @@ data class AuthUiState(
     val email: String = "",
     val password: String = "",
     val confirmPassword: String = "",
+    val displayName: String = "",
+    val dateOfBirth: String = "",
+    val gender: String = "",
     val emailError: String? = null,
     val passwordError: String? = null,
-    val confirmPasswordError: String? = null
+    val confirmPasswordError: String? = null,
+    val displayNameError: String? = null,
+    val dateOfBirthError: String? = null,
+    val genderError: String? = null
 )
 
 @HiltViewModel
@@ -72,18 +78,37 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(confirmPassword = confirmPassword, confirmPasswordError = null) }
     }
 
-    fun register() {
-        val currentState = _uiState.value
-        val email = currentState.email.trim()
-        val password = currentState.password
-        val confirmPassword = currentState.confirmPassword
+    fun updateDisplayName(displayName: String) {
+        _uiState.update { it.copy(displayName = displayName, displayNameError = null) }
+    }
+
+    fun updateDateOfBirth(dateOfBirth: String) {
+        _uiState.update { it.copy(dateOfBirth = dateOfBirth, dateOfBirthError = null) }
+    }
+
+    fun updateGender(gender: String) {
+        _uiState.update { it.copy(gender = gender, genderError = null) }
+    }
+
+    fun register(
+        email: String,
+        password: String,
+        displayName: String,
+        dateOfBirth: String,
+        gender: String
+    ) {
+        val trimmedEmail = email.trim()
+        val trimmedDisplayName = displayName.trim()
+        val trimmedDateOfBirth = dateOfBirth.trim()
+        val trimmedGender = gender.trim()
+        val confirmPassword = _uiState.value.confirmPassword
 
         // Validation
         var hasError = false
-        val emailError = if (email.isEmpty()) {
+        val emailError = if (trimmedEmail.isEmpty()) {
             hasError = true
             "Email is required"
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             hasError = true
             "Invalid email format"
         } else {
@@ -96,6 +121,27 @@ class AuthViewModel @Inject constructor(
         } else if (password.length < 6) {
             hasError = true
             "Password must be at least 6 characters"
+        } else {
+            null
+        }
+
+        val displayNameError = if (trimmedDisplayName.isEmpty()) {
+            hasError = true
+            "Display name is required"
+        } else {
+            null
+        }
+
+        val dateOfBirthError = if (trimmedDateOfBirth.isEmpty()) {
+            hasError = true
+            "Date of birth is required"
+        } else {
+            null
+        }
+
+        val genderError = if (trimmedGender.isEmpty()) {
+            hasError = true
+            "Gender is required"
         } else {
             null
         }
@@ -115,7 +161,10 @@ class AuthViewModel @Inject constructor(
                 it.copy(
                     emailError = emailError,
                     passwordError = passwordError,
-                    confirmPasswordError = confirmPasswordError
+                    confirmPasswordError = confirmPasswordError,
+                    displayNameError = displayNameError,
+                    dateOfBirthError = dateOfBirthError,
+                    genderError = genderError
                 )
             }
             return
@@ -123,7 +172,13 @@ class AuthViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(authState = AuthState.Loading) }
-            registerUseCase(email, password).fold(
+            registerUseCase(
+                email = trimmedEmail,
+                password = password,
+                displayName = trimmedDisplayName,
+                dateOfBirth = trimmedDateOfBirth,
+                gender = trimmedGender
+            ).fold(
                 onSuccess = { user ->
                     _uiState.update { it.copy(authState = AuthState.Authenticated(user)) }
                 },
@@ -192,7 +247,10 @@ class AuthViewModel @Inject constructor(
                 authState = AuthState.Unauthenticated,
                 email = "",
                 password = "",
-                confirmPassword = ""
+                confirmPassword = "",
+                displayName = "",
+                dateOfBirth = "",
+                gender = ""
             )
         }
     }
@@ -201,4 +259,3 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(authState = AuthState.Unauthenticated) }
     }
 }
-
