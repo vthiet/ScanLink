@@ -11,8 +11,7 @@ class FirebaseAuthDataSource(
     suspend fun register(
         email: String,
         password: String,
-        displayName: String? = null,
-        dateOfBirth: String? = null
+        displayName: String? = null
     ): FirebaseUser {
         val result = firebaseAuth
             .createUserWithEmailAndPassword(email, password)
@@ -35,6 +34,11 @@ class FirebaseAuthDataSource(
             .await()
 
         return result.user ?: throw IllegalStateException("Login failed")
+    }
+
+    suspend fun getIdToken(firebaseUser: FirebaseUser): String {
+        val result = firebaseUser.getIdToken(true).await()
+        return result.token ?: throw IllegalStateException("Failed to get Firebase ID token")
     }
 
     fun logout() {

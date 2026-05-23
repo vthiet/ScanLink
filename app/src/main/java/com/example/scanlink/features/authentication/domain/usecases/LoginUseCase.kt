@@ -9,10 +9,9 @@ class LoginUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(email: String, password: String): Result<UserEntity> {
         return try {
-            return authRepository.login(email, password)
+            Result.success(authRepository.login(email, password))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 }
-
