@@ -1,4 +1,4 @@
-package com.example.scanlink.features.transfer
+package com.example.scanlink.features.document_scanner.presentation.transfer
 
 
 import androidx.compose.material3.Text
