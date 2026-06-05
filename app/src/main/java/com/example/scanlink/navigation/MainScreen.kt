@@ -22,6 +22,11 @@ import com.example.scanlink.features.transfer.TransferScreen
 import com.example.scanlink.features.history.HistoryScreen
 import com.example.scanlink.features.profile.ProfileScreen
 import com.example.scanlink.features.scan.ScanScreen
+import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
+import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
+import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
+import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
+import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 
 @Composable
 fun MainScreen(authViewModel: AuthViewModel) {
