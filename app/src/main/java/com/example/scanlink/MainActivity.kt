@@ -4,10 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.scanlink.core.ui.theme.ScanLinkTheme
+import com.example.scanlink.features.authentication.presentation.viewmodels.AuthState
+import com.example.scanlink.features.authentication.presentation.viewmodels.AuthViewModel
+import com.example.scanlink.navigation.AuthNavHost
 import com.example.scanlink.navigation.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,18 +20,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val userViewModel: UserViewModel = hiltViewModel()
-
-            UserScreen(viewModel = userViewModel)
+            ScanLinkTheme {
+                MainApp()
+            }
         }
-
     }
 }
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    ScanLinkTheme {
-//        MainScreen()
-//    }
-//}
+@Composable
+fun MainApp() {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authUiState by authViewModel.uiState.collectAsState()
+
+    when (authUiState.authState) {
+        is AuthState.Authenticated -> {
+            MainScreen(authViewModel)
+        }
+        else -> {
+            AuthNavHost(
+                authViewModel = authViewModel,
+                onAuthSuccess = { /* Auth state will be observed and UI will update */ }
+            )
+        }
+    }
+}
