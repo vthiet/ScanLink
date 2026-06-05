@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+app:
+  firebase:
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
