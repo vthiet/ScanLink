@@ -40,8 +40,13 @@ class DocumentDetector {
 
         // 3. Tìm contours
         val contours = mutableListOf<MatOfPoint>()
-        Imgproc.findContours(edges, contours, Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
-
+        Imgproc.findContours(
+            edges,
+            contours,
+            Mat(),
+            Imgproc.RETR_EXTERNAL,
+            Imgproc.CHAIN_APPROX_SIMPLE
+        )
         val sortedContours = contours.sortedByDescending { Imgproc.contourArea(it) }.take(10)
 
         var bestApprox: MatOfPoint2f? = null

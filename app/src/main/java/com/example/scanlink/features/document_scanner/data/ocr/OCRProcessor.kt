@@ -8,36 +8,32 @@ import kotlinx.coroutines.tasks.await
 
 class OCRProcessor {
 
-    /**
-     * Trích xuất văn bản tiếng Việt từ Bitmap.
-     * Sử dụng ML Kit Vietnamese Text Recognition - bộ engine tốt nhất hiện nay.
-     */
     suspend fun extractText(bitmap: Bitmap): String {
         return try {
+
             val recognizer = TextRecognition.getClient(
                 TextRecognizerOptions.DEFAULT_OPTIONS
             )
+
             val image = InputImage.fromBitmap(bitmap, 0)
-            
+
             val result = recognizer.process(image).await()
-            
-            // Xử lý logic sắp xếp để văn bản không bị lộn xộn khi chụp thực tế
-            val textBlocks = result.textBlocks
-            if (textBlocks.isEmpty()) return ""
 
-            // Sắp xếp các khối văn bản từ trên xuống dưới, rồi từ trái qua phải
-            // Điều này rất quan trọng khi scan danh sách hoặc bảng biểu
-            val sortedBlocks = textBlocks.sortedWith(compareBy({ it.boundingBox?.top ?: 0 }, { it.boundingBox?.left ?: 0 }))
-
-            val extractedText = StringBuilder()
-            for (block in sortedBlocks) {
-                extractedText.append(block.text).append("\n\n")
+            if (result.text.isBlank()) {
+                return "Không tìm thấy nội dung chữ."
             }
 
-            extractedText.toString().trim()
+            var text = result.text
+
+            // Ghép các từ bị ngắt dòng bởi dấu gạch nối
+            text = text.replace(
+                Regex("(\\w+)[\\-\u00AD\u2010\u2011\u2012\u2013\u2014\u2015]\\s*\\n\\s*(\\w+)"),
+                "$1$2"
+            )
+
+            text.trim()
 
         } catch (e: Exception) {
-            e.printStackTrace()
             "Lỗi nhận diện: ${e.message}"
         }
     }
