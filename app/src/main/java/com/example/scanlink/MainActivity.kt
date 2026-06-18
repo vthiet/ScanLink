@@ -3,7 +3,6 @@ package com.example.scanlink
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -28,18 +27,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    // Inject ScanEngine - Trái tim của hệ thống đã được đóng gói
     @Inject
     lateinit var scanEngine: ScanEngine
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Khởi tạo OpenCV
         if (OpenCVLoader.initLocal()) {
             Log.d("OpenCV", "OpenCV loaded successfully")
-        } else {
-            Log.e("OpenCV", "OpenCV initialization failed")
         }
 
         setContent {
@@ -51,28 +46,24 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 try {
-                    // 1. Đọc ảnh từ drawable (photo1)
-                    val bitmap = BitmapFactory.decodeResource(resources, R.drawable.photo1)
+                    // FIX: Đọc ảnh không bị scale bởi hệ thống để giữ độ nét cao nhất cho OCR
+                    val options = BitmapFactory.Options().apply {
+                        inScaled = false
+                        inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
+                    }
+                    val bitmap = BitmapFactory.decodeResource(resources, R.drawable.photo1, options)
+                    
                     if (bitmap == null) {
-                        detectedText = "Lỗi: Không tìm thấy ảnh photo1 trong drawable"
+                        detectedText = "Lỗi: Không tìm thấy ảnh photo1"
                         isProcessing = false
                         return@LaunchedEffect
                     }
 
-                    // 2. SỬ DỤNG SCAN ENGINE
-                    // SDK này đã bao gồm: Tự động tìm khung -> Cắt ảnh -> Lọc Đen-Trắng -> OCR Tiếng Việt -> Xuất PDF
-                    val result = scanEngine.fullProcess(bitmap, "ScanLink_KetQua_TiengViet")
+                    val result = scanEngine.fullProcess(bitmap, "_Scan_Result")
 
-                    // 3. Cập nhật kết quả lên UI
                     scannedBitmap = result.processedBitmap
-                    detectedText = if (result.extractedText.isBlank()) "Không tìm thấy nội dung chữ." else result.extractedText
+                    detectedText = result.extractedText.ifBlank { "Không tìm thấy nội dung." }
                     pdfPath = result.pdfFile?.absolutePath
-                    
-                    if (result.isDocumentDetected) {
-                        Log.d("SCAN_SUCCESS", "Đã tìm thấy tài liệu và cắt ảnh thành công")
-                    } else {
-                        Log.d("SCAN_WARNING", "Không tìm thấy khung giấy, đang xử lý trên toàn bộ ảnh")
-                    }
 
                 } catch (e: Exception) {
                     detectedText = "Lỗi xử lý: ${e.message}"
@@ -82,9 +73,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Giao diện hiển thị (Compose UI)
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(modifier = Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -92,67 +82,31 @@ class MainActivity : ComponentActivity() {
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "ScanLink - Tiếng Việt OCR",
-                            fontSize = 22.sp,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
+                        Text("ScanLink - OCR Fix", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        if (isProcessing) {
-                            CircularProgressIndicator(modifier = Modifier.size(40.dp))
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
+                        if (isProcessing) CircularProgressIndicator()
 
-                        // Hiển thị ảnh sau khi đã qua bộ lọc (B&W)
                         scannedBitmap?.let {
-                            Card(
-                                modifier = Modifier.fillMaxWidth().height(400.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                            ) {
+                            Card(modifier = Modifier.fillMaxWidth().height(400.dp)) {
                                 Image(
                                     bitmap = it.asImageBitmap(),
-                                    contentDescription = "Scanned Image",
+                                    contentDescription = null,
                                     modifier = Modifier.fillMaxSize().background(Color.Black)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Nút thông báo PDF
-                        pdfPath?.let { path ->
-                            Button(
-                                onClick = { Toast.makeText(context, "File lưu tại: $path", Toast.LENGTH_LONG).show() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                            ) {
-                                Text("📁 Đã xuất PDF (Bấm để xem đường dẫn)", color = Color.White)
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Vùng hiển thị nội dung chữ nhận diện được
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "VĂN BẢN TRÍCH XUẤT (TIẾNG VIỆT):",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = Color.Gray
-                                )
+                                Text("VĂN BẢN TRÍCH XUẤT:", style = MaterialTheme.typography.labelLarge)
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                                Text(
-                                    text = detectedText,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    lineHeight = 24.sp,
-                                    color = Color.Black
-                                )
+                                Text(detectedText, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }

@@ -57,7 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     
     // OCR & ML Kit
-    implementation(libs.mlkit.vietnamese)
+    implementation(libs.mlkit.latin)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Hilt

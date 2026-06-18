@@ -31,30 +31,33 @@ class ScanEngine @Inject constructor() {
         // 1. Nhận diện vùng giấy
         val points = detector.detectDocument(bitmap)
         
-        val (finalBitmap, detected) = if (points != null) {
+        val (displayBitmap, ocrBitmap, detected) = if (points != null) {
             val transformed = transformer.transform(bitmap, points)
             
-            // CẢI TIẾN CHO GIẤY THẬT: 
-            // Bước 1: Làm sắc nét các nét chữ bị mờ do rung tay hoặc lấy nét kém
-            val sharpened = filterProcessor.applySharpen(transformed)
-            // Bước 2: Áp dụng bộ lọc Đen-Trắng nâng cao (có khử nhiễu và CLAHE)
-            filterProcessor.applyBlackWhite(sharpened) to true
+            // Bản 1: Chuyển Đen-Trắng để xuất PDF và hiển thị UI
+            val bw = filterProcessor.applyBlackWhite(transformed)
+            
+            // Bản 2: Sử dụng bộ lọc cao cấp tối ưu riêng cho OCR (Upscaling + Denoise)
+            val ocrPrep = filterProcessor.applyOcrPreparation(transformed)
+            
+            Triple(bw, ocrPrep, true)
             
         } else {
-            // Nếu không tìm thấy khung, vẫn làm nét và lọc trên toàn bộ ảnh
-            val sharpened = filterProcessor.applySharpen(bitmap)
-            filterProcessor.applyBlackWhite(sharpened) to false
+            // Nếu không tìm thấy khung, xử lý trên toàn bộ ảnh
+            val bw = filterProcessor.applyBlackWhite(bitmap)
+            val ocrPrep = filterProcessor.applyOcrPreparation(bitmap)
+            Triple(bw, ocrPrep, false)
         }
 
-        // 2. Trích xuất chữ (Đã được cập nhật bộ Tiếng Việt trong OCRProcessor)
-        val textResult = ocrProcessor.extractText(finalBitmap)
+        // 2. Trích xuất chữ từ ảnh đã được tối ưu hóa siêu sắc nét
+        val textResult = ocrProcessor.extractText(ocrBitmap)
 
-        // 3. Xuất PDF
-        val pdfFile = pdfProcessor.createPdfFromBitmaps(listOf(finalBitmap), pdfFileName)
+        // 3. Xuất PDF từ ảnh Đen Trắng
+        val pdfFile = pdfProcessor.createPdfFromBitmaps(listOf(displayBitmap), pdfFileName)
 
         return ScanResult(
             originalBitmap = bitmap,
-            processedBitmap = finalBitmap,
+            processedBitmap = displayBitmap,
             extractedText = textResult,
             pdfFile = pdfFile,
             isDocumentDetected = detected

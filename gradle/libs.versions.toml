@@ -15,7 +15,7 @@ composeBom = "2026.05.00"
 lifecycleViewmodelCompose = "2.10.0"
 navigationCompose = "2.9.8"
 opencv = "4.13.0"
-mlkitVietnamese = "16.0.1"
+mlkitTextRecognition = "16.0.1"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
@@ -42,7 +42,9 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 opencv = { module = "org.opencv:opencv", version.ref = "opencv" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-mlkit-vietnamese = { module = "com.google.mlkit:text-recognition", version.ref = "mlkitVietnamese" }
+# Sử dụng chính xác bộ engine Latin cho văn bản tiếng Anh
+mlkit-latin = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
