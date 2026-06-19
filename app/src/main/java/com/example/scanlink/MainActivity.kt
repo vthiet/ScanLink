@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                         inScaled = false
                         inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
                     }
-                    val bitmap = BitmapFactory.decodeResource(resources, R.drawable.photo1, options)
+                    val bitmap = BitmapFactory.decodeResource(resources, R.drawable.photo5, options)
                     
                     if (bitmap == null) {
                         detectedText = "Lỗi: Không tìm thấy ảnh photo1"
