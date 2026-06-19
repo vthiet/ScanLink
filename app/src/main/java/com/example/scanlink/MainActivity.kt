@@ -3,43 +3,35 @@ package com.example.scanlink
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.scanlink.core.ui.theme.ScanLinkTheme
-import com.example.scanlink.features.authentication.presentation.viewmodels.AuthState
-import com.example.scanlink.features.authentication.presentation.viewmodels.AuthViewModel
-import com.example.scanlink.navigation.AuthNavHost
-import com.example.scanlink.navigation.MainScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.scanlink.features.authentication.presentation.RegisterContent
+import com.example.scanlink.features.authentication.presentation.RegisterState
+import com.example.scanlink.features.authentication.presentation.RegisterViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            ScanLinkTheme {
-                MainApp()
-            }
-        }
-    }
-}
 
-@Composable
-fun MainApp() {
-    val authViewModel: AuthViewModel = hiltViewModel()
-    val authUiState by authViewModel.uiState.collectAsState()
+            val viewModel: RegisterViewModel = viewModel()
 
-    when (authUiState.authState) {
-        is AuthState.Authenticated -> {
-            MainScreen(authViewModel)
-        }
-        else -> {
-            AuthNavHost(
-                authViewModel = authViewModel,
-                onAuthSuccess = { /* Auth state will be observed and UI will update */ }
+            val state = RegisterState(
+                displayNameInput = "",
+                emailInput = "",
+                passwordInput = "",
+                dateOfBirthInput = "",
+                genderInput = "",
+                isLoading = false
+            )
+
+            RegisterContent(
+                viewModel = viewModel,
+                state = state,
+                onNavigateToLogin = {}
             )
         }
     }
