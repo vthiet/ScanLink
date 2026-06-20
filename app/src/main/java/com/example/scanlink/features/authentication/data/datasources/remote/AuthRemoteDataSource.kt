@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.data.remote
+package com.example.scanlink.features.authentication.data.datasources.remote
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

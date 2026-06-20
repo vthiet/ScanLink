@@ -27,4 +27,5 @@ class RegisterWithEmailUseCase @Inject constructor(
             Result.failure(e)
         }
     }
+
 }

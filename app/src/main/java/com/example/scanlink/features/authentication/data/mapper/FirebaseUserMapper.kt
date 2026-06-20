@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.data.models
+package com.example.scanlink.features.authentication.data.mapper
 
 import com.google.firebase.auth.FirebaseUser
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
