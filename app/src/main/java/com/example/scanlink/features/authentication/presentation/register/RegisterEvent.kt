@@ -6,6 +6,8 @@ sealed class RegisterEvent {
 
     data class PasswordChanged(val value: String) : RegisterEvent()
 
+    data class ConfirmPasswordChanged(val value: String): RegisterEvent()
+
     data class DisplayNameChanged(val value: String) : RegisterEvent()
 
     data class DateOfBirthChanged(val value: String) : RegisterEvent()
