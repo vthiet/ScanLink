@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.data.datasources
+package com.example.scanlink.features.authentication.data.datasources.remote
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -8,6 +8,7 @@ import kotlinx.coroutines.tasks.await
 class FirebaseAuthDataSource(
     private val firebaseAuth: FirebaseAuth
 ) {
+
     suspend fun register(
         email: String,
         password: String,

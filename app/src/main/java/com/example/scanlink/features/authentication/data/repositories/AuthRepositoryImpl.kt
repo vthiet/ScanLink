@@ -1,60 +1,64 @@
 package com.example.scanlink.features.authentication.data.repositories
 
-import com.example.scanlink.features.authentication.data.datasources.FirebaseAuthDataSource
-import com.example.scanlink.features.authentication.data.models.toEntity
-import com.example.scanlink.features.authentication.data.models.toUserProfile
-import com.example.scanlink.features.authentication.data.remote.AuthRemoteDataSource
+import com.example.scanlink.features.authentication.data.datasources.remote.api.IAuthApiService
+import com.example.scanlink.features.authentication.data.datasources.remote.dto.RegisterRequest
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
-import com.example.scanlink.features.authentication.domain.repositories.AuthRepository
 import com.example.scanlink.features.authentication.domain.repositories.IAuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val remoteDataSource: AuthRemoteDataSource
+    private val authApiService: IAuthApiService
 ) : IAuthRepository {
+
     override suspend fun registerWithEmail(
         displayName: String,
         dateOfBirth: String,
         gender: String,
         email: String,
         password: String
-    ): Result<UserEntity> {
-        return try {
-            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = authResult.user ?: throw Exception("Không thể khởi tạo tài khoản Firebase")
-            val tokenResult = firebaseUser.getIdToken(true).await()
-            val idToken = tokenResult.token ?: throw Exception("Không thể lấy Token bảo mật")
+    ): Result<UserEntity> = runCatching {
+        // runCatching <-> try-catch, tự động bọc kết quả vào Result.success or Result.failure
 
-            val backendData = remoteDataSource.registerToSpringBoot(
-                idToken = idToken,
-                displayName = displayName,
-                dateOfBirth = dateOfBirth,
-                gender = gender
-            )
+        val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+        val firebaseUser = authResult.user ?: throw Exception("Không thể tạo tài khoản Firebase")
 
-            Result.success(
-                UserEntity(
-                    uid = firebaseUser.uid,
-                    email = firebaseUser.email,
-                    displayName = displayName,
-                    photoUrl = firebaseUser.photoUrl?.toString(),
-                    isEmailVerified = firebaseUser.isEmailVerified,
-                    providerId = firebaseUser.providerId,
-
-                    dateOfBirth = dateOfBirth,
-                    gender = gender,
-                    role = backendData.role ?: "USER",
-                    isActive = backendData.isActive,
-                    createdAt = backendData.createdAt,
-                    updatedAt = backendData.updatedAt
-                )
-            )
-        } catch (e: Exception) {
-            Result.failure(e)
+        val profileUpdates = userProfileChangeRequest {
+            this.displayName = displayName
         }
+        firebaseUser.updateProfile(profileUpdates).await()
+
+        // Lấy ID Token (Mã thông báo bảo mật) từ Firebase
+        // true = forceRefresh, ép Firebase cấp một token mới
+        val tokenResult = firebaseUser.getIdToken(true).await()
+        val idToken = tokenResult.token ?: throw Exception("Lỗi không lấy được Token xác thực")
+
+        val registerRequest = RegisterRequest(
+            email = email,
+            displayName = displayName,
+            dateOfBirth = dateOfBirth,
+            gender = gender
+        )
+
+        // Gọi API Spring Boot
+        // Gửi token lên header: "Bearer $idToken"
+        // (Thực tế bạn nên cấu hình AuthInterceptor trong OkHttp để nó tự đính kèm Token,
+        // ở đây mình viết rõ ra để bạn dễ hình dung luồng đi)
+        val registerResponse = authApiService.registerWithEmail(
+            authorization = "Bearer $idToken",
+            request = registerRequest
+        )
+
+        UserEntity(
+            uid = registerResponse.uid,
+            email = registerResponse.email,
+            displayName = registerResponse.displayName,
+            dateOfBirth = registerResponse.dateOfBirth,
+            gender = registerResponse.gender
+        )
     }
 
     override suspend fun loginWithEmail(

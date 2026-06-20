@@ -52,10 +52,11 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Firebase dependencies - using explicit versions
-    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
-    implementation("com.google.firebase:firebase-analytics-ktx:21.6.1")
+    implementation(libs.firebase.auth.ktx.v2231)
+    implementation(libs.firebase.analytics.ktx)
 
     implementation(libs.opencv)
     // Hiếu: New Dependency
@@ -79,7 +80,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation(libs.retrofit)
 
 
     testImplementation(libs.junit)

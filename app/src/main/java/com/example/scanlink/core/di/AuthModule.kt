@@ -1,9 +1,8 @@
 package com.example.scanlink.core.di
 
-import com.example.scanlink.features.authentication.data.datasources.FirebaseAuthDataSource
-import com.example.scanlink.features.authentication.data.remote.AuthRemoteDataSource
+import com.example.scanlink.features.authentication.data.datasources.remote.FirebaseAuthDataSource
+import com.example.scanlink.features.authentication.data.datasources.remote.AuthRemoteDataSource
 import com.example.scanlink.features.authentication.data.repositories.AuthRepositoryImpl
-import com.example.scanlink.features.authentication.domain.repositories.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
