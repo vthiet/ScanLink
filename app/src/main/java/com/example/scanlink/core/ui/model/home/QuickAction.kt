@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.model.home
+package com.example.scanlink.core.ui.model.home
 
 data class QuickAction(
     val title: String,

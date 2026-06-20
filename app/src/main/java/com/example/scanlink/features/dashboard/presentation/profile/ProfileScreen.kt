@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.profile
+package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview

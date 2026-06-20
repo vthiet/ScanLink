@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.component.button
+package com.example.scanlink.core.ui.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

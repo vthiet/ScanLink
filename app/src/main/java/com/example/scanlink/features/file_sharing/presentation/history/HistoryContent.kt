@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.history
+package com.example.scanlink.features.file_sharing.presentation.history
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,13 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.scanlink.features.file_sharing.presentation.model.FileType
-import com.example.scanlink.features.file_sharing.presentation.model.RecentFile
-import com.example.scanlink.features.file_sharing.presentation.ui.component.card.RecentFileItem
-import com.example.scanlink.features.file_sharing.presentation.ui.component.header.AppHeader
-import com.example.scanlink.features.file_sharing.presentation.ui.history.components.HistoryDateHeader
-import com.example.scanlink.features.file_sharing.presentation.ui.history.components.HistorySearchBar
-import com.example.scanlink.features.file_sharing.presentation.ui.history.components.HistoryTabBar
+import com.example.scanlink.core.ui.model.FileType
+import com.example.scanlink.core.ui.model.RecentFile
+import com.example.scanlink.core.ui.components.card.RecentFileItem
+import com.example.scanlink.core.ui.components.header.AppHeader
+import com.example.scanlink.features.file_sharing.presentation.history.components.HistoryDateHeader
+import com.example.scanlink.features.file_sharing.presentation.history.components.HistorySearchBar
+import com.example.scanlink.features.file_sharing.presentation.history.components.HistoryTabBar
 
 data class DateGroup(
     val title: String,

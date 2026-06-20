@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.component.bottom_bar
+package com.example.scanlink.core.ui.components.bottom_bar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.scanlink.core.ui.components.bottom_bar.model.BottomNavItem
 
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.transfer
+package com.example.scanlink.features.document_scanner.presentation.transfer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,12 +11,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.file_sharing.presentation.model.FileType
-import com.example.scanlink.features.file_sharing.presentation.model.RecentFile
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferActionSection
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadAreaCard
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadingFileItem
+import com.example.scanlink.core.ui.model.FileType
+import com.example.scanlink.core.ui.model.RecentFile
 import com.example.scanlink.features.file_sharing.presentation.model.transfer.TransferTab
-import com.example.scanlink.features.file_sharing.presentation.ui.component.card.RecentFileItem
-import com.example.scanlink.features.file_sharing.presentation.ui.component.header.AppHeader
-import com.example.scanlink.features.file_sharing.presentation.ui.transfer.component.*
+import com.example.scanlink.core.ui.components.card.RecentFileItem
+import com.example.scanlink.core.ui.components.header.AppHeader
 
 @Composable
 fun TransferContent(

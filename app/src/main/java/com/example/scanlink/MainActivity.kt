@@ -13,15 +13,15 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val userViewModel: UserViewModel = hiltViewModel()
-
-            UserScreen(viewModel = userViewModel)
+            ScanLinkTheme {
+                MainScreen()
+            }
         }
-
     }
 }
 

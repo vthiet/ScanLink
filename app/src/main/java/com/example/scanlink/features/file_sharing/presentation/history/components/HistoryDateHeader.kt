@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.history.components
+package com.example.scanlink.features.file_sharing.presentation.history.components
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.history.components
+package com.example.scanlink.features.file_sharing.presentation.history.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

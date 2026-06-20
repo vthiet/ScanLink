@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.camera.components
+package com.example.scanlink.features.document_scanner.presentation.camera.components
 
 import android.content.ContentValues
 import android.content.Context

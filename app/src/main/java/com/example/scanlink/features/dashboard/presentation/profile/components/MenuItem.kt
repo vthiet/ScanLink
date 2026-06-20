@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.profile.components
+package com.example.scanlink.features.dashboard.presentation.profile.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.file_sharing.presentation.model.MenuItemData
+import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
 fun MenuItem(item: MenuItemData) {

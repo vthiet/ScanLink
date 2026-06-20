@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.transfer.component
+package com.example.scanlink.features.document_scanner.presentation.transfer.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

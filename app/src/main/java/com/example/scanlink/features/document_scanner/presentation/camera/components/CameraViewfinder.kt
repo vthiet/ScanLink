@@ -1,6 +1,5 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.camera.components
+package com.example.scanlink.features.document_scanner.presentation.camera.components
 
-import android.content.Context
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview

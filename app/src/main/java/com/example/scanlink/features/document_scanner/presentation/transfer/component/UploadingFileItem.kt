@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.transfer.component
+package com.example.scanlink.features.document_scanner.presentation.transfer.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.file_sharing.presentation.model.RecentFile
+import com.example.scanlink.core.ui.model.RecentFile
 
 @Composable
 fun UploadingFileItem(file: RecentFile) {

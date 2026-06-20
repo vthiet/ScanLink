@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.scan
+package com.example.scanlink.features.document_scanner.presentation.camera
 
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.background
@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraBottomControls
+import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraViewfinder
 import com.example.scanlink.features.file_sharing.presentation.ui.camera.components.*
 
 @Composable

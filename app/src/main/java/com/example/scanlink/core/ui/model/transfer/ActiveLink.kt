@@ -1,6 +1,6 @@
 package com.example.scanlink.features.file_sharing.presentation.model.transfer
 
-import com.example.scanlink.features.file_sharing.presentation.model.FileType
+import com.example.scanlink.core.ui.model.FileType
 
 data class ActiveLink(
     val id: String,

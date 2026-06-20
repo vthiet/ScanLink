@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.home.components
+package com.example.scanlink.features.dashboard.presentation.home.components
 
 
 import androidx.compose.foundation.layout.*
