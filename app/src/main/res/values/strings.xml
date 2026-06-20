@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">ScanLink</string>
+    <string name="error_password_short">Password must have at least 6 characters</string>
+    <string name="error_email_invalid">Email invalid</string>
+    <string name="error_unknown">An error has occurred. Please try again!</string>
+    <string name="error_display_name_empty">Display name mustn\'t empty</string>
+    <string name="error_dob_empty">Date of birth cannot be empty</string>
+    <string name="error_dob_future">Date of birth cannot be in the future</string>
+    <string name="error_dob_invalid">Invalid date format (dd/MM/yyyy)</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
 </resources>

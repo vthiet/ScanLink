@@ -29,10 +29,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.core.ui.components.DatePickerField
+import com.example.scanlink.features.authentication.presentation.component.DatePickerField
 import com.example.scanlink.features.authentication.presentation.component.AuthPasswordTextField
 import com.example.scanlink.features.authentication.presentation.component.AuthTextField
 import com.example.scanlink.features.authentication.presentation.component.GenderDropdownField
@@ -40,74 +41,100 @@ import com.example.scanlink.features.authentication.presentation.component.Gende
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterContent(
-        viewModel: RegisterViewModel,
-        state: RegisterState,
-        onNavigateToLogin: () -> Unit
+    viewModel: RegisterViewModel,
+    state: RegisterState,
+    onNavigateToLogin: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
     Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                        title = { Text("Create new account", fontWeight = FontWeight.Bold) },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateToLogin) {
-                                Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back"
-                                )
-                            }
-                        }
-                )
-            }
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Create new account", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateToLogin) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
-                modifier =
-                        Modifier.fillMaxSize()
-                                .padding(paddingValues)
-                                .padding(24.dp)
-                                .verticalScroll(scrollState),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(15.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(24.dp)
+                    .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             Text(text = "Please fill out information below", fontSize = 14.sp, color = Color.Gray)
 
             // Display name field
             AuthTextField(
-                    value = state.displayNameInput,
-                    label = "Full name",
-                    icon = Icons.Default.Person,
-                    onValueChange = { viewModel.onEvent(RegisterEvent.DisplayNameChanged(it)) }
+                value = state.displayNameInput,
+                label = "Display name",
+                icon = Icons.Default.Person,
+                errorResId = state.displayNameErrorResId,
+                onValueChange = {
+                    viewModel.onEvent(RegisterEvent.DisplayNameChanged(it))
+                }
             )
 
             // Email field
             AuthTextField(
-                    value = state.emailInput,
-                    label = "Email",
-                    icon = Icons.Default.Email,
-                    onValueChange = { viewModel.onEvent(RegisterEvent.EmailChanged(it)) }
+                value = state.emailInput,
+                label = "Email",
+                icon = Icons.Default.Email,
+                errorResId = state.emailErrorResId,
+                onValueChange = {
+                    viewModel.onEvent(RegisterEvent.EmailChanged(it))
+                }
             )
 
             // Password field
             AuthPasswordTextField(
-                    value = state.passwordInput,
-                    label = "Password",
-                    icon = Icons.Default.Password,
-                    onValueChange = { viewModel.onEvent(RegisterEvent.PasswordChanged(it)) }
+                value = state.passwordInput,
+                label = "Password",
+                icon = Icons.Default.Password,
+                errorResId = state.passwordErrorResId,
+                onValueChange = {
+                    viewModel.onEvent(RegisterEvent.PasswordChanged(it))
+                }
+            )
+
+            // Confirm Password field
+            AuthPasswordTextField(
+                value = state.confirmPasswordInput,
+                label = "Confirm password",
+                icon = Icons.Default.Password,
+                errorResId = state.confirmPasswordErrorResId,
+                onValueChange = {
+                    viewModel.onEvent(RegisterEvent.ConfirmPasswordChanged(it))
+                }
             )
 
             // DatePicker field
             DatePickerField(
-                    value = state.dateOfBirthInput,
-                    label = "Date of birth",
-                    onDateSelected = { viewModel.onEvent(RegisterEvent.DateOfBirthChanged(it)) }
+                value = state.dateOfBirthInput,
+                label = "Date of birth",
+                errorResId = state.dateOfBirthErrorResId,
+                onDateSelected = {
+                    viewModel.onEvent(RegisterEvent.DateOfBirthChanged(it))
+                }
             )
 
             GenderDropdownField(
-                    value = state.genderInput,
-                    label = "Gender",
-                    items = listOf("Male", "Female", "Other"),
-                    onItemSelected = { viewModel.onEvent(RegisterEvent.GenderChanged(it)) }
+                value = state.genderInput,
+                label = "Gender",
+                items = listOf("Male", "Female", "Other"),
+                onItemSelected = {
+                    viewModel.onEvent(RegisterEvent.GenderChanged(it))
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -116,18 +143,20 @@ fun RegisterContent(
                 CircularProgressIndicator(modifier = Modifier.size(48.dp))
             } else {
                 Button(
-                        onClick = { viewModel.onEvent(RegisterEvent.Submit) },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = MaterialTheme.shapes.medium
+                    onClick = { viewModel.onEvent(RegisterEvent.Submit) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) { Text("Register", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
             }
 
-            state.error?.let {
+            state.errorResId?.let {
                 Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 8.dp),
-                        fontWeight = FontWeight.Medium
+                    text = stringResource(id = it),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp),
+                    fontWeight = FontWeight.Medium
                 )
             }
 
