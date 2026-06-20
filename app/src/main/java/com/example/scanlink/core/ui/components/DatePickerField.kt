@@ -1,4 +1,4 @@
-package com.example.scanlink.core.presentation.components
+package com.example.scanlink.core.ui.components
 
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
