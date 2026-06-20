@@ -11,6 +11,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+import com.example.scanlink.features.authentication.domain.repositories.IAuthRepository
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AuthModule {
@@ -36,7 +38,7 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(authRepositoryImpl: AuthRepositoryImpl): AuthRepository {
+    fun provideAuthRepository(authRepositoryImpl: AuthRepositoryImpl): IAuthRepository {
         return authRepositoryImpl
     }
 }

@@ -2,7 +2,7 @@ package com.example.scanlink.features.authentication.domain.usecases
 
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
 import com.example.scanlink.features.authentication.domain.repositories.IAuthRepository
-import jakarta.inject.Inject
+import javax.inject.Inject
 
 class RegisterWithEmailUseCase @Inject constructor(
     private val repository: IAuthRepository

@@ -3,10 +3,10 @@ package com.example.scanlink
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.scanlink.features.authentication.presentation.RegisterContent
-import com.example.scanlink.features.authentication.presentation.RegisterState
-import com.example.scanlink.features.authentication.presentation.RegisterViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.scanlink.core.ui.theme.ScanLinkTheme
+import com.example.scanlink.features.authentication.presentation.register.RegisterViewModel
+import com.example.scanlink.navigation.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,23 +16,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            ScanLinkTheme {
+                val viewModel: RegisterViewModel = hiltViewModel()
 
-            val viewModel: RegisterViewModel = viewModel()
-
-            val state = RegisterState(
-                displayNameInput = "",
-                emailInput = "",
-                passwordInput = "",
-                dateOfBirthInput = "",
-                genderInput = "",
-                isLoading = false
-            )
-
-            RegisterContent(
-                viewModel = viewModel,
-                state = state,
-                onNavigateToLogin = {}
-            )
+                AppNavigation(
+                    registerViewModel = viewModel
+                )
+            }
         }
     }
 }
