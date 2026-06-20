@@ -10,16 +10,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.example.scanlink.core.ui.components.bottom_bar.AppBottomBar
 import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
 import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
+import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
 import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 
 @Composable
@@ -28,6 +31,13 @@ fun MainGraph(
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val shouldShowBottomBar =
+        currentRoute != "camera" &&
+                currentRoute != "ocr_result" &&
+                !(currentRoute?.startsWith("preview/") ?: false)
 
     Scaffold(
         bottomBar = {
@@ -46,7 +56,13 @@ fun MainGraph(
             composable(BottomNavItem.History.route) { HistoryScreen() }
             composable(BottomNavItem.Profile.route) { ProfileScreen() }
         }
+
     }
+//    AppNavGraph(
+//        navController = navController
+//                modifier = Modifier.padding(padding)
+//    )
+//    }
 }
 
 @Composable
