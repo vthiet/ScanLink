@@ -9,33 +9,31 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import com.example.scanlink.features.authentication.presentation.viewmodels.AuthViewModel
-import com.example.scanlink.features.home.HomeScreen
-import com.example.scanlink.features.transfer.TransferScreen
-import com.example.scanlink.features.history.HistoryScreen
-import com.example.scanlink.features.profile.ProfileScreen
-import com.example.scanlink.features.scan.ScanScreen
 import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
+import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
-import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
 import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 
 @Composable
-fun MainScreen(authViewModel: AuthViewModel) {
+fun MainGraph(
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val navController = rememberNavController()
 
     Scaffold(
         bottomBar = {
             BottomBar(navController)
-        }
+        },
+        modifier = modifier
     ) { padding ->
         NavHost(
             navController = navController,
@@ -62,10 +60,7 @@ fun BottomBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     Box {
-
-//    2 item bên trái
         NavigationBar {
-
             items.take(2).forEach { item ->
                 NavigationBarItem(
                     selected = currentRoute == item.route,
@@ -86,7 +81,6 @@ fun BottomBar(navController: NavHostController) {
                 label = { Text("") },
                 enabled = false
             )
-        // 2 item bên phải
             items.drop(2).forEach { item ->
                 NavigationBarItem(
                     selected = currentRoute == item.route,
@@ -101,7 +95,7 @@ fun BottomBar(navController: NavHostController) {
                 )
             }
         }
-        // FAB Scan nhô lên giữa
+
         FloatingActionButton(
             onClick = {
                 navController.navigate(BottomNavItem.Scan.route) {
@@ -125,4 +119,4 @@ fun BottomBar(navController: NavHostController) {
             )
         }
     }
-    }
+}
