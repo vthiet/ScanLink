@@ -41,28 +41,25 @@ fun MainGraph(
 
     Scaffold(
         bottomBar = {
-            BottomBar(navController)
-        },
-        modifier = modifier
-    ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = BottomNavItem.Home.route,
-            modifier = Modifier.padding(padding)
-        ) {
-            composable(BottomNavItem.Home.route) { HomeScreen() }
-            composable(BottomNavItem.Transfer.route) { TransferScreen() }
-            composable(BottomNavItem.Scan.route) { ScanScreen() }
-            composable(BottomNavItem.History.route) { HistoryScreen() }
-            composable(BottomNavItem.Profile.route) { ProfileScreen() }
+            if (shouldShowBottomBar) {
+                AppBottomBar(
+                    currentRoute = currentRoute,
+                    onTabSelected = { route ->
+                        navController.navigate(route)
+                    },
+                    onCameraClick = {
+                        navController.navigate("camera")
+                    }
+                )
+            }
         }
+    ) { padding ->
 
+        AppNavGraph(
+            navController = navController,
+            modifier = Modifier.padding(padding)
+        )
     }
-//    AppNavGraph(
-//        navController = navController
-//                modifier = Modifier.padding(padding)
-//    )
-//    }
 }
 
 @Composable
