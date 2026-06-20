@@ -154,7 +154,7 @@ graph TD
     subgraph Client_Environment [Mobile Environment]
         Android[Android Smartphone <br/> API Level 26+]
     end
-
+    
     subgraph Public_Network [Internet Gateway]
         LB[Reverse Proxy / Nginx & SSL TLS 1.3]
     end

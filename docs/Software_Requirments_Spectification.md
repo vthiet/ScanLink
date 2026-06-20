@@ -142,24 +142,24 @@ Phần này định nghĩa nghiêm ngặt các ranh giới kỹ thuật nhằm �
 
 Tài liệu sử dụng mô hình hóa định hướng mục tiêu (goal-oriented). Mục tiêu chính là cung cấp nền tảng quản lý tài liệu số toàn diện.
 
-``` mindmap
-  root((MỤC TIÊU CHÍNH: Khai thác tối đa giá trị tài liệu số với ScanLink))
-    Sub-Goal 1: Tài liệu được số hóa thông minh
+``` mermaid
+mindmap
+  root((MỤC TIÊU CHÍNH:<br>Khai thác tối đa giá trị<br>tài liệu số với ScanLink))
+    Sub-Goal 1(Tài liệu được số hóa thông minh)
       Quét tự động
       Cân chỉnh độ méo
       Lọc màu, OCR
-    Sub-Goal 2: Tài liệu được quản lý an toàn
+    Sub-Goal 2(Tài liệu được quản lý an toàn)
       Lưu trữ an toàn
-      Đăng nhập bảo mật (Firebase)
-    Sub-Goal 3: Phân phối và chia sẻ linh hoạt
+      Đăng nhập bảo mật Firebase
+    Sub-Goal 3(Phân phối và chia sẻ linh hoạt)
       Public link
-      Private/Account-based share
-
+      Private / Account-based share
 ```
 
 ### 2.2 Sơ đồ Use Case Tổng quan
 
-``` flowchart
+``` mermaid
 flowchart LR
     User([Người dùng App])
     Guest([Khách vãng lai])
@@ -181,7 +181,6 @@ flowchart LR
     Guest --> UC1 & UC2 & UC3 & UC4
     User --> Guest
     User --> UC5 & UC6 & UC7 & UC8
-
 ```
 
 ### 2.3 SUB-GOAL 1: Tài liệu được số hóa thông minh
