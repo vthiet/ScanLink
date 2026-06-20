@@ -1,21 +1,21 @@
 package com.example.scanlink.features.authentication.domain.usecases
 
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
-import com.example.scanlink.features.authentication.domain.repositories.AuthRepository
+import com.example.scanlink.features.authentication.domain.repositories.IAuthRepository
 import javax.inject.Inject
 
 class RegisterUseCase @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: IAuthRepository
 ) {
     suspend operator fun invoke(
         email: String,
         password: String,
-        displayName: String? = null,
-        dateOfBirth: String? = null,
-        gender: String? = null
+        displayName: String,
+        dateOfBirth: String,
+        gender: String
     ): Result<UserEntity> {
         return try {
-            authRepository.register(email, password, displayName, dateOfBirth, gender)
+            authRepository.registerWithEmail(displayName, dateOfBirth, gender, email, password)
         } catch (e: Exception) {
             Result.failure(e)
         }
