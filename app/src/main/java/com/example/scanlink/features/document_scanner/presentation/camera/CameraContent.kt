@@ -44,6 +44,7 @@ fun CameraContent(
                     onImageCaptureReady = { imageCapture.value = it },
                     isFrontCamera = state.isFrontCamera
                 )
+
             }
 
             CameraBottomControls(
