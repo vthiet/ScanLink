@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.component.card
+package com.example.scanlink.core.ui.components.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,9 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.file_sharing.presentation.model.FileType
-import com.example.scanlink.features.file_sharing.presentation.model.RecentFile
-import com.example.scanlink.features.file_sharing.presentation.ui.component.button.CircleActionButton
+import com.example.scanlink.core.ui.model.FileType
+import com.example.scanlink.core.ui.model.RecentFile
+import com.example.scanlink.core.ui.components.button.CircleActionButton
 
 @Composable
 fun RecentFileItem(

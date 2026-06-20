@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.scan
+package com.example.scanlink.features.document_scanner.presentation.camera
 
 import android.Manifest
 import android.content.pm.PackageManager

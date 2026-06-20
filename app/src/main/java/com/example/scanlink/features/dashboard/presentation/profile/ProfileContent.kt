@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.profile
+package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,11 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.scanlink.features.file_sharing.presentation.model.MenuItemData
-import com.example.scanlink.features.file_sharing.presentation.ui.profile.components.LogoutSection
-import com.example.scanlink.features.file_sharing.presentation.ui.profile.components.ProfileHeroSection
-import com.example.scanlink.features.file_sharing.presentation.ui.profile.components.ProfileMenuSection
-import com.example.scanlink.features.file_sharing.presentation.ui.profile.components.StorageCard
+import com.example.scanlink.core.ui.model.MenuItemData
+import com.example.scanlink.features.dashboard.presentation.profile.components.LogoutSection
+import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileHeroSection
+import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileMenuSection
+import com.example.scanlink.features.dashboard.presentation.profile.components.StorageCard
 
 @Composable
 fun ProfileContent() {

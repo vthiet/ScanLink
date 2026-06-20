@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.model
+package com.example.scanlink.core.ui.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector

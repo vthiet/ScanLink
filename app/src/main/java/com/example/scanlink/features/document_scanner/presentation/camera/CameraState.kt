@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.scan
+package com.example.scanlink.features.document_scanner.presentation.camera
 
 sealed class CameraUiState {
     object Initial : CameraUiState()

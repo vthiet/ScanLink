@@ -1,44 +1,25 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.component.bottom_bar
+package com.example.scanlink.core.ui.components.bottom_bar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-data class BottomNavItem(
-    val title: String,
-    val icon: ImageVector
-)
+import com.example.scanlink.core.ui.components.bottom_bar.model.items
 
 @Composable
 fun AppBottomBar(
-    currentTab: Int = 1,
-    onTabSelected: (Int) -> Unit = {} ,
-    onCameraClick: () -> Unit = {}
+    currentRoute: String?,
+    onTabSelected: (String) -> Unit,
+    onCameraClick: () -> Unit
 ) {
-
-    val items = listOf(
-        BottomNavItem("Home", Icons.Default.Home),
-        BottomNavItem("Transfer", Icons.Default.SwapHoriz),
-        BottomNavItem("History", Icons.Default.History),
-        BottomNavItem("Profile", Icons.Default.AccountCircle)
-    )
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -53,34 +34,30 @@ fun AppBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Home
             BottomBarItem(
                 item = items[0],
-                selected = currentTab == 0,
-                onClick = { onTabSelected(0) }
+                selected = currentRoute == items[0].route,
+                onClick = { onTabSelected(items[0].route) }
             )
 
-            // Transfer
             BottomBarItem(
                 item = items[1],
-                selected = currentTab == 1,
-                onClick = { onTabSelected(1) }
+                selected = currentRoute == items[1].route,
+                onClick = { onTabSelected(items[1].route) }
             )
 
             Spacer(modifier = Modifier.width(70.dp))
 
-            // History
             BottomBarItem(
                 item = items[2],
-                selected = currentTab == 2,
-                onClick = { onTabSelected(2) }
+                selected = currentRoute == items[2].route,
+                onClick = { onTabSelected(items[2].route) }
             )
 
-            // Profile
             BottomBarItem(
                 item = items[3],
-                selected = currentTab == 3,
-                onClick = { onTabSelected(3) }
+                selected = currentRoute == items[3].route,
+                onClick = { onTabSelected(items[3].route) }
             )
         }
 
@@ -89,19 +66,19 @@ fun AppBottomBar(
                 .size(86.dp)
                 .align(Alignment.TopCenter)
                 .offset(y = (-22).dp)
-                .background(color = Color.Black, shape = CircleShape)
+                .background(Color.Black, CircleShape)
                 .padding(8.dp)
-                .background(color = Color(0xFF00E0A4), shape = CircleShape)
-                .clickable { onCameraClick()  },
+                .background(Color(0xFF00E0A4), CircleShape)
+                .clickable {
+                    onCameraClick()
+                },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.PhotoCamera,
                 contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier.size(35.dp)
+                tint = Color.Black
             )
         }
     }
 }
-

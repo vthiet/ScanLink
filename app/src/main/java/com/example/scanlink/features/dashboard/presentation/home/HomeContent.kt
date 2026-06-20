@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.home
+package com.example.scanlink.features.dashboard.presentation.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,13 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scanlink.R
-import com.example.scanlink.features.file_sharing.presentation.model.FileType
-import com.example.scanlink.features.file_sharing.presentation.model.RecentFile
-import com.example.scanlink.features.file_sharing.presentation.model.home.QuickAction
-import com.example.scanlink.features.file_sharing.presentation.ui.component.header.AppHeader
-import com.example.scanlink.features.file_sharing.presentation.ui.home.components.QuickActionSection
-import com.example.scanlink.features.file_sharing.presentation.ui.home.components.RecentSection
-import com.example.scanlink.features.file_sharing.presentation.ui.component.card.RecentFileItem
+import com.example.scanlink.core.ui.components.card.RecentFileItem
+import com.example.scanlink.core.ui.components.header.AppHeader
+import com.example.scanlink.core.ui.model.FileType
+import com.example.scanlink.core.ui.model.RecentFile
+import com.example.scanlink.core.ui.model.home.QuickAction
+import com.example.scanlink.features.dashboard.presentation.home.components.QuickActionSection
+import com.example.scanlink.features.dashboard.presentation.home.components.RecentSection
+
 
 @Composable
 fun HomeContent(

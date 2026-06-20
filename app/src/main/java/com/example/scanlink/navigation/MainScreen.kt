@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.example.scanlink.core.ui.components.bottom_bar.AppBottomBar
 import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
@@ -24,24 +25,36 @@ import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 
 @Composable
 fun MainScreen() {
+
     val navController = rememberNavController()
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val shouldShowBottomBar =
+        currentRoute != "camera" &&
+                currentRoute != "ocr_result" &&
+                !(currentRoute?.startsWith("preview/") ?: false)
 
     Scaffold(
         bottomBar = {
-            BottomBar(navController)
+            if (shouldShowBottomBar) {
+                AppBottomBar(
+                    currentRoute = currentRoute,
+                    onTabSelected = { route ->
+                        navController.navigate(route)
+                    },
+                    onCameraClick = {
+                        navController.navigate("camera")
+                    }
+                )
+            }
         }
-    ) { padding ->
-        NavHost(
+    ){ padding ->
+
+        AppNavGraph(
             navController = navController,
-            startDestination = BottomNavItem.Home.route,
             modifier = Modifier.padding(padding)
-        ) {
-            composable(BottomNavItem.Home.route) { HomeScreen() }
-            composable(BottomNavItem.Transfer.route) { TransferScreen() }
-            composable(BottomNavItem.Scan.route) { ScanScreen() }
-            composable(BottomNavItem.History.route) { HistoryScreen() }
-            composable(BottomNavItem.Profile.route) { ProfileScreen() }
-        }
+        )
     }
 }
 
@@ -57,7 +70,6 @@ fun BottomBar(navController: NavHostController) {
 
     Box {
 
-//    2 item bên trái
         NavigationBar {
 
             items.take(2).forEach { item ->

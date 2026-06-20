@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.profile.components
+package com.example.scanlink.features.dashboard.presentation.profile.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

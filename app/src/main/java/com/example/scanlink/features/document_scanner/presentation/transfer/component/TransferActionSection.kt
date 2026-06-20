@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.transfer.component
+package com.example.scanlink.features.document_scanner.presentation.transfer.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +23,6 @@ private val ColorSurface = Color(0xFF1C1C21)
 private val ColorBorder = Color(0xFF252528)
 private val ColorTextMuted = Color(0xFF666666)
 
-// Maps each tab to a Tabler icon unicode character (outline set)
 private fun tabIconText(tab: TransferTab): String = when (tab) {
     TransferTab.Upload  -> "󰅧"
     TransferTab.Share   -> "󰒓"

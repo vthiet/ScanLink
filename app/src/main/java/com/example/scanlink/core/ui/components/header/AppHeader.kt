@@ -1,7 +1,6 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.component.header
+package com.example.scanlink.core.ui.components.header
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape

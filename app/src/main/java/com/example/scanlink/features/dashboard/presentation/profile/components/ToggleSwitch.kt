@@ -1,4 +1,4 @@
-package com.example.scanlink.features.file_sharing.presentation.ui.profile.components
+package com.example.scanlink.features.dashboard.presentation.profile.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -13,10 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.file_sharing.presentation.model.MenuItemData
+import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
 fun ToggleSwitch(isChecked: Boolean) {
