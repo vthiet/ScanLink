@@ -1,6 +1,6 @@
 plugins {
     // Use explicit plugin coordinates/versions for testing plugin-alias issues
-    id("com.android.application") version "9.2.1"
+    id("com.android.application") version "9.1.0-rc01"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
     id("com.google.devtools.ksp") version "2.3.8"
     id("com.google.dagger.hilt.android") version "2.59.2"
@@ -52,10 +52,6 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
 
-    // Firebase dependencies - using explicit versions
-    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
-    implementation("com.google.firebase:firebase-analytics-ktx:21.6.1")
-
     implementation(libs.opencv)
     // Hiếu: New Dependency
     implementation(libs.androidx.navigation.compose)
@@ -71,6 +67,9 @@ dependencies {
 
     // vthiet: Hilt
     implementation(libs.hilt.android)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.analytics)
+    implementation(platform(libs.firebase.bom))
     ksp(libs.hilt.compiler)
 
     // vthiet: Hilt + Jetpack Compose + ViewModel
