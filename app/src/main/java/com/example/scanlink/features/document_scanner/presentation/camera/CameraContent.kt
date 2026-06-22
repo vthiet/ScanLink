@@ -8,7 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraBottomControls
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraViewfinder
 import com.example.scanlink.features.file_sharing.presentation.ui.camera.components.*
@@ -17,9 +18,11 @@ import com.example.scanlink.features.file_sharing.presentation.ui.camera.compone
 fun CameraContent(
     onClose: () -> Unit = {},
     onPhotoCaptured: (String) -> Unit = {},
-    viewModel: CameraViewModel = hiltViewModel()
+    viewModel: CameraViewModel
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -44,7 +47,6 @@ fun CameraContent(
                     onImageCaptureReady = { imageCapture.value = it },
                     isFrontCamera = state.isFrontCamera
                 )
-
             }
 
             CameraBottomControls(
@@ -54,14 +56,13 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(uri)
+                    viewModel.onCaptureSuccess(context, uri)
                     onPhotoCaptured(uri)
                 },
                 isLoading = state.isLoading
             )
         }
 
-        // Loading Overlay
         if (state.isLoading) {
             Box(
                 modifier = Modifier
