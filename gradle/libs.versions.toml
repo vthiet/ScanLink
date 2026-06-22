@@ -47,6 +47,8 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 # Sử dụng chính xác bộ engine Latin cho văn bản tiếng Anh
 mlkit-latin = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx"}
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
