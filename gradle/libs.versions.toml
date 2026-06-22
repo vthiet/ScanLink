@@ -1,7 +1,8 @@
 [versions]
-agp = "9.1.0"
+agp = "9.1.0-rc01"
 cameraCamera2 = "1.6.1"
 coreKtx = "1.18.0"
+firebaseBom = "32.8.0"
 hiltNavigationCompose = "1.3.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -16,6 +17,7 @@ lifecycleViewmodelCompose = "2.10.0"
 navigationCompose = "2.9.8"
 opencv = "4.13.0"
 mlkitTextRecognition = "16.0.1"
+#firebaseAuthKtx = "24.1.0"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
@@ -44,6 +46,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 # Sử dụng chính xác bộ engine Latin cho văn bản tiếng Anh
 mlkit-latin = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

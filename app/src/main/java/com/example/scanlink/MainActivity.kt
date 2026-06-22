@@ -20,6 +20,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.scanlink.core.ui.theme.ScanLinkTheme
+import com.example.scanlink.features.authentication.presentation.register.RegisterViewModel
+import com.example.scanlink.navigation.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import org.opencv.android.OpenCVLoader
 import javax.inject.Inject
@@ -64,6 +68,14 @@ class MainActivity : ComponentActivity() {
                     scannedBitmap = result.processedBitmap
                     detectedText = result.extractedText.ifBlank { "Không tìm thấy nội dung." }
                     pdfPath = result.pdfFile?.absolutePath
+//             ScanLinkTheme {
+//                 val viewModel: RegisterViewModel = hiltViewModel()
+
+//                 AppNavigation(
+//                     registerViewModel = viewModel
+//                 )
+//             }
+        }
 
                 } catch (e: Exception) {
                     detectedText = "Lỗi xử lý: ${e.message}"
