@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,15 +16,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun CameraScreen(
     onClose: () -> Unit,
-    onNavigateToPreview: (String) -> Unit
+    onNavigateToPreview: (String) -> Unit,
+    onNavigateToOcrResult: () -> Unit,
+    viewModel: CameraViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val viewModel: CameraViewModel = hiltViewModel()
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var hasCameraPermission by remember { mutableStateOf(false) }
 
@@ -33,7 +36,6 @@ fun CameraScreen(
         hasCameraPermission = isGranted
     }
 
-    // Kiểm tra và yêu cầu quyền
     LaunchedEffect(Unit) {
         hasCameraPermission = ContextCompat.checkSelfPermission(
             context, Manifest.permission.CAMERA
@@ -44,21 +46,40 @@ fun CameraScreen(
         }
     }
 
-    when {
-        !hasCameraPermission -> {
-            PermissionDeniedScreen(onRequestPermission = {
-                permissionLauncher.launch(Manifest.permission.CAMERA)
-            })
+    LaunchedEffect(state.detectedText) {
+        if (state.detectedText.isNotEmpty()) {
+            onNavigateToOcrResult()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            !hasCameraPermission -> {
+                PermissionDeniedScreen(onRequestPermission = {
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                })
+            }
+
+            else -> {
+                CameraContent(
+                    onClose = onClose,
+                    onPhotoCaptured = { uri ->
+                        viewModel.onCaptureSuccess(context, uri)
+                    },
+                    viewModel = viewModel
+                )
+            }
         }
 
-        else -> {
-            CameraContent(
-                onClose = onClose,
-                onPhotoCaptured = { uri ->
-                    onNavigateToPreview(uri)
-                },
-                viewModel = viewModel
-            )
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
         }
     }
 }

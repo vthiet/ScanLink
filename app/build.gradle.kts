@@ -1,8 +1,9 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    id("com.android.application") version "9.1.0-rc01"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
+    id("com.google.devtools.ksp") version "2.3.8"
+    id("com.google.dagger.hilt.android") version "2.59.2"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -35,14 +36,6 @@ android {
     buildFeatures {
         compose = true
     }
-}
-
-plugins {
-    id("com.android.application") version "9.1.0-rc01"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
-    id("com.google.devtools.ksp") version "2.3.8"
-    id("com.google.dagger.hilt.android") version "2.59.2"
-    id("com.google.gms.google-services")
 }
 
 dependencies {
