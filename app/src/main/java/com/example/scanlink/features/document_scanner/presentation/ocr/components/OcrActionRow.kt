@@ -10,7 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun OcrActionRow() {
+fun OcrActionRow(
+    textToCopy: String,
+    pdfPath: String?
+) {
 
     Row(
         modifier = Modifier
@@ -29,13 +32,15 @@ fun OcrActionRow() {
         ActionButton(
             modifier = Modifier.weight(1f),
             text = "Dịch",
-            icon = Icons.Default.Language
+            icon = Icons.Default.Language,
+//            onClick = { /* Logic dịch văn bản nếu có */ }
         )
 
         ActionButton(
             modifier = Modifier.weight(1f),
             text = "Chia sẻ",
-            icon = Icons.Default.Share
+            icon = Icons.Default.Share,
+//            onClick = {/* Logic chia sẻ text / file PDF */}
         )
     }
 }

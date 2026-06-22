@@ -9,24 +9,39 @@ import androidx.compose.ui.graphics.Color
 import com.example.scanlink.features.document_scanner.presentation.ocr.components.*
 
 @Composable
-fun OcrResultContent() {
-
+fun OcrResultContent(
+    detectedText: String,
+    pdfPath: String?,
+    onBackClick: () -> Unit,
+    onSaveToDbClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF111111))
     ) {
+        OcrTopBar(
+            onBackClick = onBackClick
+        )
 
-        OcrTopBar()
+        DocumentInfoCard(
+            pdfPath = pdfPath
+        )
 
-        DocumentInfoCard()
-
-        OcrActionRow()
+        OcrActionRow(
+            textToCopy = detectedText,
+            pdfPath = pdfPath
+        )
 
         OcrTextCard(
+            text = detectedText,
             modifier = Modifier.weight(1f)
         )
 
-        OcrBottomActions()
+        OcrBottomActions(
+            onCancelClick = onBackClick,
+            onSaveClick = onSaveToDbClick,
+            isSaveEnabled = pdfPath != null
+        )
     }
 }
