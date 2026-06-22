@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun OcrTextCard(
+    text: String,
     modifier: Modifier = Modifier
 ) {
 
@@ -34,7 +35,7 @@ fun OcrTextCard(
         ) {
 
             Text(
-                text = "...",
+                text = text.ifBlank { "Không tìm thấy nội dung chữ." },
                 color = Color.White,
                 fontSize = 13.sp,
                 lineHeight = 22.sp,

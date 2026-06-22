@@ -15,7 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun OcrTopBar() {
+fun OcrTopBar(
+    onBackClick: () -> Unit = {}
+) {
 
     Row(
         modifier = Modifier

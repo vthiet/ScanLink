@@ -10,9 +10,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun DocumentInfoCard() {
+fun DocumentInfoCard(
+    pdfPath: String?,
+    onClick: () -> Unit = {}
+) {
+    val fileName = pdfPath?.substringAfterLast("/") ?: "Tai_lieu_scan.pdf"
+    val fileDetail = if (pdfPath != null) "Định dạng: PDF • 1 trang" else "Đang chuẩn bị file..."
 
     Card(
+        onClick = onClick,
+        enabled = pdfPath != null,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
@@ -35,15 +42,15 @@ fun DocumentInfoCard() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Purchase Agreement",
-                color = Color.White,
+                text = fileName,
+                color = if (pdfPath != null) Color.White else Color.Gray,
                 fontSize = 16.sp
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "24 Nov 2025 • English • 1 trang",
+                text = fileDetail,
                 color = Color.Gray,
                 fontSize = 12.sp
             )
