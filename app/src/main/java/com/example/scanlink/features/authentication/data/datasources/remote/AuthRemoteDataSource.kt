@@ -16,7 +16,7 @@ data class UserDto(
     val role: String?,
     val isActive: Boolean,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt   : Long
 )
 
 class AuthRemoteDataSource(

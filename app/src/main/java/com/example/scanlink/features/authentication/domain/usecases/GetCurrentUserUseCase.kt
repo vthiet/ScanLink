@@ -1,14 +1,20 @@
 package com.example.scanlink.features.authentication.domain.usecases
 
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
-import com.example.scanlink.features.authentication.domain.repositories.AuthRepository
+import com.example.scanlink.features.authentication.domain.repositories.IAuthenticationRepository
 import javax.inject.Inject
 
 class GetCurrentUserUseCase @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: IAuthenticationRepository
 ) {
-    operator fun invoke(): UserEntity? {
-        return authRepository.getCurrentUser()
+    suspend operator fun invoke(): Result<UserEntity> {
+        return try {
+            return authRepository.getCurrentUser()
+
+        } catch (e: Exception){
+            return Result.failure(e)
+        }
+
     }
 }
 
