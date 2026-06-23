@@ -15,12 +15,6 @@ data class RegisterState(
     val displayNameInput: String = "",
     val displayNameErrorResId: Int? = null,
 
-    val dateOfBirthInput: String = "",
-    val dateOfBirthErrorResId: Int? = null,
-
-    val genderInput: String = "",
-    val genderErrorResId: Int? = null,
-
     val isPasswordVisible: Boolean = false,
     val isConfirmPasswordVisible: Boolean = false,
 

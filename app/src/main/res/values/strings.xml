@@ -8,4 +8,7 @@
     <string name="error_dob_future">Date of birth cannot be in the future</string>
     <string name="error_dob_invalid">Invalid date format (dd/MM/yyyy)</string>
     <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_wrong_password">Incorrect email or password</string>
+    <string name="error_user_not_found">Account not found. Please register first</string>
+    <string name="error_too_many_requests">Too many failed attempts. Please try again later</string>
 </resources>

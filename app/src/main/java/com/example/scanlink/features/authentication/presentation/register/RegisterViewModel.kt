@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scanlink.R
 import com.example.scanlink.core.toUserFriendlyErrorResId
-import com.example.scanlink.features.authentication.domain.usecases.RegisterWithEmailUseCase
+import com.example.scanlink.features.authentication.domain.usecases.RegisterWithEmailAndPasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,13 +18,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterWithEmailUseCase
+    private val registerUseCase: RegisterWithEmailAndPasswordUseCase
 ) : ViewModel() {
 
-    // private, just viewmodel can change
     private val _state: MutableStateFlow<RegisterState> = MutableStateFlow(RegisterState())
 
-    // public for compose read
     val state: StateFlow<RegisterState> = _state.asStateFlow()
 
     fun onEvent(event: RegisterEvent) {
@@ -36,10 +34,6 @@ class RegisterViewModel @Inject constructor(
             is RegisterEvent.ConfirmPasswordChanged -> onEventConfirmPasswordChanged(event)
 
             is RegisterEvent.DisplayNameChanged -> onEventDisplayNameChanged(event)
-
-            is RegisterEvent.DateOfBirthChanged -> onEventDateOfBirthChanged(event)
-
-            is RegisterEvent.GenderChanged -> onEventGenderChanged(event)
 
             RegisterEvent.Submit -> performRegistration()
         }
@@ -125,38 +119,6 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    private fun onEventDateOfBirthChanged(event: RegisterEvent.DateOfBirthChanged) {
-        val input = event.value
-        var errorResId: Int? = null
-
-        if (input.isEmpty()) {
-            errorResId = R.string.error_dob_empty
-        } else {
-            try {
-                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                val dob = LocalDate.parse(input, formatter)
-                val today = LocalDate.now()
-
-                if (dob.isAfter(today)) {
-                    errorResId = R.string.error_dob_future
-                }
-            } catch (e: DateTimeParseException) {
-                errorResId = R.string.error_dob_invalid
-            }
-        }
-
-        _state.update { currentState ->
-            currentState.copy(
-                dateOfBirthInput = input,
-                dateOfBirthErrorResId = errorResId
-            )
-        }
-    }
-
-    private fun onEventGenderChanged(event: RegisterEvent.GenderChanged) {
-        _state.update { it.copy(genderInput = event.value) }
-    }
-
     private fun performRegistration() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorResId = null) }
@@ -164,9 +126,7 @@ class RegisterViewModel @Inject constructor(
             val result = registerUseCase(
                 email = _state.value.emailInput,
                 password = _state.value.passwordInput,
-                displayName = _state.value.displayNameInput,
-                dateOfBirth = _state.value.dateOfBirthInput,
-                gender = _state.value.genderInput
+                displayName = _state.value.displayNameInput
             )
 
             result.fold(
