@@ -1,5 +1,6 @@
 package com.example.scanlink.core.di
 
+import com.example.scanlink.BuildConfig
 import com.example.scanlink.features.authentication.data.datasources.remote.AuthRemoteDataSource
 import com.example.scanlink.features.authentication.data.datasources.remote.FirebaseAuthDataSource
 import com.example.scanlink.features.authentication.data.datasources.remote.api.IAuthApiService
@@ -18,7 +19,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 object AuthModule {
-    private const val BACKEND_BASE_URL = "http://10.0.2.2:8080"
 
     @Provides
     @Singleton
@@ -35,7 +35,7 @@ object AuthModule {
     @Provides
     @Singleton
     fun provideAuthRemoteDataSource(): AuthRemoteDataSource {
-        return AuthRemoteDataSource(BACKEND_BASE_URL)
+        return AuthRemoteDataSource(BuildConfig.BASE_URL)
     }
 
     @Provides
@@ -43,7 +43,7 @@ object AuthModule {
     @AuthRetrofit
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-                .baseUrl(BACKEND_BASE_URL)
+                .baseUrl(BuildConfig.BASE_URL)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
