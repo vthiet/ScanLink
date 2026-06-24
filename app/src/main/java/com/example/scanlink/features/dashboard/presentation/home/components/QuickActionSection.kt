@@ -4,9 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -17,7 +14,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.scanlink.core.ui.model.home.QuickAction
 
 @Composable
@@ -25,50 +24,74 @@ fun QuickActionSection(
     actions: List<QuickAction>,
     onActionClick: (QuickAction) -> Unit = {}
 ) {
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+    // Sử dụng Column + Row giúp layout ổn định hơn, không bị cắt chữ hàng dưới
+    Column(
         modifier = Modifier
-            .height(220.dp)
+            .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        userScrollEnabled = false
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-        items(actions) { action ->
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onActionClick(action) }
-                    .padding(vertical = 4.dp)
+        val rows = actions.chunked(3)
+        rows.forEach { rowActions ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                Box(
-                    modifier = Modifier
-                        .size(65.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF4A4A4A)),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Image(
-                        painter = painterResource(id = action.iconRes),
-                        contentDescription = null,
-                        modifier = Modifier.size(action.iconSize.dp)
+                rowActions.forEach { action ->
+                    QuickActionItem(
+                        action = action,
+                        onActionClick = onActionClick,
+                        modifier = Modifier.weight(1f)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = action.title,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
+                // Bù khoảng trống nếu hàng không đủ 3 items
+                if (rowActions.size < 3) {
+                    repeat(3 - rowActions.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+fun QuickActionItem(
+    action: QuickAction,
+    onActionClick: (QuickAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onActionClick(action) }
+            .padding(vertical = 8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF333333)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = action.iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(action.iconSize.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = action.title,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center,
+            minLines = 1,
+            maxLines = 2
+        )
     }
 }

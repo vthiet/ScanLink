@@ -6,6 +6,7 @@ import com.example.scanlink.features.document_scanner.data.opencv.DocumentDetect
 import com.example.scanlink.features.document_scanner.data.opencv.ImageFilterProcessor
 import com.example.scanlink.features.document_scanner.data.opencv.PerspectiveTransformer
 import com.example.scanlink.features.document_scanner.data.pdf.PDFProcessor
+import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,17 +41,21 @@ class ScanEngine @Inject constructor() {
     }
 
     /**
-     * Bước 2: Áp dụng bộ lọc Đen-Trắng
+     * Bước 2: Áp dụng bộ lọc dựa trên loại được chọn
      */
-    fun applyFilters(bitmap: Bitmap): Bitmap {
-        return filterProcessor.applyBlackWhite(bitmap)
+    fun applyFilters(bitmap: Bitmap, filterType: ScanFilterType): Bitmap {
+        return when (filterType) {
+            ScanFilterType.ORIGINAL -> bitmap
+            ScanFilterType.B_W -> filterProcessor.applyBlackWhite(bitmap)
+            ScanFilterType.GRAYSCALE -> filterProcessor.applyGrayscale(bitmap)
+            ScanFilterType.MAGIC_COLOR -> filterProcessor.applyMagicColor(bitmap)
+        }
     }
 
     /**
      * Bước 3: Trích xuất chữ
      */
     suspend fun extractText(bitmap: Bitmap): String {
-        // Tối ưu ảnh cho OCR trước khi đọc
         val ocrPrep = filterProcessor.applyOcrPreparation(bitmap)
         return ocrProcessor.extractText(ocrPrep)
     }
@@ -62,11 +67,10 @@ class ScanEngine @Inject constructor() {
         return pdfProcessor.createPdfFromBitmaps(listOf(bitmap), fileName)
     }
 
-    // Giữ lại hàm cũ để không làm hỏng các phần khác, nhưng gọi các hàm con
     suspend fun fullProcess(bitmap: Bitmap, pdfFileName: String = "ScanLink_Export"): ScanResult {
         val (transformed, detected) = transformDocument(bitmap)
-        val filtered = applyFilters(transformed)
-        val text = extractText(transformed) // Dùng bản đã cắt nhưng chưa lọc B&W để OCR tốt hơn
+        val filtered = applyFilters(transformed, ScanFilterType.B_W)
+        val text = extractText(transformed)
         val pdf = createPdf(filtered, pdfFileName)
 
         return ScanResult(
@@ -86,7 +90,7 @@ class ScanEngine @Inject constructor() {
 
         val processedBitmaps = bitmaps.map { bitmap ->
             val (transformed, _) = transformDocument(bitmap)
-            applyFilters(transformed)
+            applyFilters(transformed, ScanFilterType.B_W)
         }
 
         return pdfProcessor.createPdfFromBitmaps(processedBitmaps, pdfFileName)
