@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application") version "9.2.1"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
@@ -6,10 +8,18 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val devBaseUrl = localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2"
+
 android {
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"https://api-dev.yourdomain.com\"")
+            buildConfigField("String", "BASE_URL", "\"$devBaseUrl\"")
         }
 
         release {
