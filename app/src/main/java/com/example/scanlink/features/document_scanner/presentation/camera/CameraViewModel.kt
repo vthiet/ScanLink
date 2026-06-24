@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +37,20 @@ class CameraViewModel @Inject constructor(
 
     fun switchCamera() {
         _uiState.value = _uiState.value.copy(isFrontCamera = !_uiState.value.isFrontCamera)
+    }
+
+    fun onFilterSelected(filterType: ScanFilterType) {
+        val transformed = _uiState.value.transformedBitmap ?: return
+        
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = scanEngine.applyFilters(transformed, filterType)
+            _uiState.update { 
+                it.copy(
+                    selectedFilter = filterType,
+                    processedBitmap = filtered
+                )
+            }
+        }
     }
 
     fun onCaptureStarted() {
@@ -79,46 +94,56 @@ class CameraViewModel @Inject constructor(
                 
                 _uiState.update { 
                     it.copy(
+                        transformedBitmap = transformed,
                         processedBitmap = transformed, 
                         uiState = CameraUiState.Filtering 
                     ) 
                 }
 
-                // 3. Apply Filters
+                // 3. Apply Default Filter (B&W)
                 kotlinx.coroutines.delay(300) 
                 val filtered = withContext(Dispatchers.Default) {
-                    scanEngine.applyFilters(transformed)
+                    scanEngine.applyFilters(transformed, ScanFilterType.B_W)
                 }
 
                 _uiState.update { 
                     it.copy(
                         processedBitmap = filtered,
+                        selectedFilter = ScanFilterType.B_W,
                         uiState = CameraUiState.OcrProcessing
                     ) 
                 }
 
-                // 4. OCR & PDF
-                val textTask = viewModelScope.launch(Dispatchers.Default) {
-                    val text = scanEngine.extractText(transformed)
-                    _uiState.update { it.copy(detectedText = text.ifBlank { "Không tìm thấy nội dung chữ." }) }
+                // 4. OCR
+                val text = withContext(Dispatchers.Default) {
+                    scanEngine.extractText(transformed)
                 }
-
-                val pdfFile = withContext(Dispatchers.IO) {
-                    scanEngine.createPdf(filtered, "Scan_${System.currentTimeMillis()}")
-                }
-
-                textTask.join()
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        uiState = CameraUiState.Success(imageUri, it.selectedMode),
-                        pdfPath = pdfFile?.absolutePath
+                        detectedText = text.ifBlank { "Không tìm thấy nội dung chữ." },
+                        uiState = CameraUiState.Success(imageUri, it.selectedMode)
                     )
                 }
 
             } catch (e: Exception) {
                 onCaptureError("Lỗi xử lý tài liệu: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun saveDocument(pdfFileName: String = "Scan_${System.currentTimeMillis()}") {
+        val bitmap = _uiState.value.processedBitmap ?: return
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            val pdfFile = scanEngine.createPdf(bitmap, pdfFileName)
+            _uiState.update { 
+                it.copy(
+                    isLoading = false,
+                    pdfPath = pdfFile?.absolutePath
+                )
             }
         }
     }
