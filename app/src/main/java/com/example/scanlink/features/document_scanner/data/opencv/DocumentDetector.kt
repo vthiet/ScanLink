@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.example.scanlink.features.document_scanner.domain.entities.ScanPoint
 import org.opencv.android.Utils
 import org.opencv.core.*
+import org.opencv.geometry.Geometry
 import org.opencv.imgproc.Imgproc
 
 class DocumentDetector {
@@ -47,25 +48,25 @@ class DocumentDetector {
             Imgproc.RETR_EXTERNAL,
             Imgproc.CHAIN_APPROX_SIMPLE
         )
-        val sortedContours = contours.sortedByDescending { Imgproc.contourArea(it) }.take(10)
+        val sortedContours = contours.sortedByDescending { Geometry.contourArea(it) }.take(10)
 
         var bestApprox: MatOfPoint2f? = null
         val downscaledArea = downscaled.cols() * downscaled.rows()
 
         for (c in sortedContours) {
             val c2f = MatOfPoint2f(*c.toArray())
-            val peri = Imgproc.arcLength(c2f, true)
+            val peri = Geometry.arcLength(c2f, true)
             val approx = MatOfPoint2f()
             
             // Thử xấp xỉ đa giác
-            Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true)
+            Geometry.approxPolyDP(c2f, approx, 0.02 * peri, true)
 
-            val area = Imgproc.contourArea(approx)
+            val area = Geometry.contourArea(approx)
             
             // Điều kiện: Hình tứ giác và chiếm ít nhất 15% diện tích (giảm từ 20% để bắt giấy từ xa)
             if (approx.total() == 4L && area > (downscaledArea * 0.15)) {
                 // Kiểm tra thêm độ lồi (convexity) để loại bỏ các hình méo mó
-                if (Imgproc.isContourConvex(MatOfPoint(*approx.toArray()))) {
+                if (Geometry.isContourConvex(MatOfPoint(*approx.toArray()))) {
                     bestApprox = approx
                     break
                 }
@@ -96,7 +97,7 @@ class DocumentDetector {
         val topLeft = sortedBySum.first()
         val bottomRight = sortedBySum.last()
 
-        val remaining = points.filter { it != topLeft && it != bottomRight }
+        val remaining = points.filter { (it != topLeft) && (it != bottomRight) }
         val topRight = remaining.maxByOrNull { it.x - it.y } ?: points[0]
         val bottomLeft = remaining.minByOrNull { it.x - it.y } ?: points[0]
 
@@ -104,7 +105,7 @@ class DocumentDetector {
             ScanPoint(topLeft.x, topLeft.y),
             ScanPoint(topRight.x, topRight.y),
             ScanPoint(bottomRight.x, bottomRight.y),
-            ScanPoint(bottomLeft.x, bottomLeft.y)
+            ScanPoint(bottomLeft.x, bottomLeft.y),
         )
     }
 }
