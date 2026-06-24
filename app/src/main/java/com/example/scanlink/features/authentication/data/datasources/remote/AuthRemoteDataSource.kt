@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.data.remote
+package com.example.scanlink.features.authentication.data.datasources.remote
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,7 +16,7 @@ data class UserDto(
     val role: String?,
     val isActive: Boolean,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt   : Long
 )
 
 class AuthRemoteDataSource(

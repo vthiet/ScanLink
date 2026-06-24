@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.presentation.register
+package com.example.scanlink.features.authentication.presentation.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,16 +11,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,57 +29,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.scanlink.features.authentication.presentation.component.DatePickerField
 import com.example.scanlink.features.authentication.presentation.component.AuthPasswordTextField
 import com.example.scanlink.features.authentication.presentation.component.AuthTextField
-import com.example.scanlink.features.authentication.presentation.component.GenderDropdownField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterContent(
-    viewModel: RegisterViewModel,
-    state: RegisterState,
-    onNavigateToLogin: () -> Unit
+fun LoginContent(
+    viewModel: LoginViewModel,
+    state: LoginState,
+    onNavigateToRegister: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Create new account", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateToLogin) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+                title = { Text("Sign in", fontWeight = FontWeight.Bold) }
             )
         }
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(24.dp)
-                    .verticalScroll(scrollState),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Text(text = "Please fill out information below", fontSize = 14.sp, color = Color.Gray)
-
-            // Display name field
-            AuthTextField(
-                value = state.displayNameInput,
-                label = "Display name",
-                icon = Icons.Default.Person,
-                errorResId = state.displayNameErrorResId,
-                onValueChange = {
-                    viewModel.onEvent(RegisterEvent.DisplayNameChanged(it))
-                }
-            )
+            Text(text = "Welcome back! Please sign in to continue", fontSize = 14.sp, color = Color.Gray)
 
             // Email field
             AuthTextField(
@@ -92,7 +66,7 @@ fun RegisterContent(
                 icon = Icons.Default.Email,
                 errorResId = state.emailErrorResId,
                 onValueChange = {
-                    viewModel.onEvent(RegisterEvent.EmailChanged(it))
+                    viewModel.onEvent(LoginEvent.EmailChanged(it))
                 }
             )
 
@@ -103,18 +77,7 @@ fun RegisterContent(
                 icon = Icons.Default.Password,
                 errorResId = state.passwordErrorResId,
                 onValueChange = {
-                    viewModel.onEvent(RegisterEvent.PasswordChanged(it))
-                }
-            )
-
-            // Confirm Password field
-            AuthPasswordTextField(
-                value = state.confirmPasswordInput,
-                label = "Confirm password",
-                icon = Icons.Default.Password,
-                errorResId = state.confirmPasswordErrorResId,
-                onValueChange = {
-                    viewModel.onEvent(RegisterEvent.ConfirmPasswordChanged(it))
+                    viewModel.onEvent(LoginEvent.PasswordChanged(it))
                 }
             )
 
@@ -124,12 +87,12 @@ fun RegisterContent(
                 CircularProgressIndicator(modifier = Modifier.size(48.dp))
             } else {
                 Button(
-                    onClick = { viewModel.onEvent(RegisterEvent.Submit) },
+                    onClick = { viewModel.onEvent(LoginEvent.Submit) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = MaterialTheme.shapes.medium
-                ) { Text("Register", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+                ) { Text("Sign in", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
             }
 
             state.errorResId?.let {
@@ -141,7 +104,7 @@ fun RegisterContent(
                 )
             }
 
-            TextButton(onClick = onNavigateToLogin) { Text("You have account? Login here") }
+            TextButton(onClick = onNavigateToRegister) { Text("Don't have an account? Register here") }
         }
     }
 }
