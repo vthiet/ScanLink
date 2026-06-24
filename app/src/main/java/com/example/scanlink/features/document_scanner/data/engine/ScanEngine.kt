@@ -63,4 +63,30 @@ class ScanEngine @Inject constructor() {
             isDocumentDetected = detected
         )
     }
+
+    /**
+     * Xử lý nhiều ảnh cùng lúc và gộp thành 1 file PDF duy nhất
+     */
+    suspend fun processMultipleImages(
+        bitmaps: List<Bitmap>,
+        pdfFileName: String = "ScanLink_Batch_Export"
+    ): File? {
+        if (bitmaps.isEmpty()) return null
+
+        val processedBitmaps = bitmaps.map { bitmap ->
+            // Thử nhận diện tài liệu cho từng ảnh
+            val points = detector.detectDocument(bitmap)
+            val transformed = if (points != null) {
+                transformer.transform(bitmap, points)
+            } else {
+                bitmap
+            }
+
+            // Áp dụng bộ lọc Đen-Trắng để PDF đồng nhất và chuyên nghiệp
+            filterProcessor.applyBlackWhite(transformed)
+        }
+
+        // Tạo 1 file PDF duy nhất chứa tất cả các trang
+        return pdfProcessor.createPdfFromBitmaps(processedBitmaps, pdfFileName)
+    }
 }
