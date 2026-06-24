@@ -84,6 +84,9 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // ExifInterface
+    implementation(libs.androidx.exifinterface)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
