@@ -106,12 +106,18 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
+    // =========================================================
+    // ML KIT
+    // =========================================================
+    implementation(libs.mlkit.text.recognition)
+
     implementation(libs.opencv)
 
     // =========================================================
     // UI COMPONENTS
     // =========================================================
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.coil.compose)
 
     // =========================================================
     // UNIT TEST
