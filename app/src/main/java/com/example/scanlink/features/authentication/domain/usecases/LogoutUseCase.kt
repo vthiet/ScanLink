@@ -1,12 +1,12 @@
 package com.example.scanlink.features.authentication.domain.usecases
 
-import com.example.scanlink.features.authentication.domain.repositories.AuthRepository
+import com.example.scanlink.features.authentication.domain.repositories.IAuthenticationRepository
 import javax.inject.Inject
 
 class LogoutUseCase @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: IAuthenticationRepository
 ) {
-    operator fun invoke() {
+    suspend operator fun invoke() {
         authRepository.logout()
     }
 }

@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">ScanLink</string>
+
+    <!-- Lỗi validation phía client (field-level) -->
+    <string name="error_password_short">Password must have at least 6 characters</string>
+    <string name="error_email_invalid">Email invalid</string>
+    <string name="error_display_name_empty">Display name mustn\'t be empty</string>
+    <string name="error_dob_empty">Date of birth cannot be empty</string>
+    <string name="error_dob_future">Date of birth cannot be in the future</string>
+    <string name="error_dob_invalid">Invalid date format (dd/MM/yyyy)</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+
+    <!-- Lỗi Firebase Authentication (field-level hoặc banner) -->
+    <string name="error_wrong_password">Incorrect email or password</string>
+    <string name="error_user_not_found">Account not found. Please register first</string>
+    <string name="error_too_many_requests">Too many failed attempts. Please try again later</string>
+    <string name="error_email_already_exists">This email is already registered. Please log in instead</string>
+
+    <!-- Lỗi Backend Server (HTTP Status Codes - SDD mục 5.2) — hiển thị ở ErrorBanner -->
+    <string name="error_account_not_synced">Your account is not linked to our system yet. Please register again</string>
+    <string name="error_token_expired">Your session has expired. Please log in again</string>
+    <string name="error_forbidden">You do not have permission to perform this action</string>
+    <string name="error_bad_request">Invalid request. Please check your input and try again</string>
+    <string name="error_payload_too_large">File size exceeds the 10MB limit</string>
+    <string name="error_server">A server error occurred. Please try again later</string>
+
+    <!-- Lỗi mạng / kết nối — hiển thị ở ErrorBanner -->
+    <string name="error_network_timeout">Connection timed out. Please check your network and try again</string>
+    <string name="error_no_network">No internet connection. Please check your network</string>
+
+    <!-- Fallback -->
+    <string name="error_unknown">An error has occurred. Please try again!</string>
 </resources>
