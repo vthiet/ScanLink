@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,19 +45,14 @@ fun AppNavGraph(
             ProfileScreen()
         }
 
-        composable(Screen.Camera.route) { backStackEntry ->
-            val cameraViewModel: CameraViewModel = hiltViewModel(backStackEntry)
+        composable(Screen.Camera.route) {
+            val cameraViewModel: CameraViewModel = hiltViewModel()
 
             CameraScreen(
                 viewModel = cameraViewModel,
-                onClose = {
-                    navController.popBackStack()
-                },
+                onClose = { navController.popBackStack() },
                 onNavigateToPreview = { uri ->
                     navController.navigate(Screen.Preview.createRoute(uri))
-                },
-                onNavigateToOcrResult = {
-                    navController.navigate(Screen.OcrResult.route)
                 }
             )
         }
@@ -78,21 +73,39 @@ fun AppNavGraph(
         }
 
         composable(Screen.Preview.route) { backStackEntry ->
+            val context = androidx.compose.ui.platform.LocalContext.current
 
             val imageUri = Uri.decode(
                 backStackEntry.arguments?.getString("uri") ?: ""
             )
+
+            val cameraBackStackEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.Camera.route)
+            }
+
+            val sharedCameraViewModel: CameraViewModel = hiltViewModel(cameraBackStackEntry)
 
             PreviewScreen(
                 imageUri = imageUri,
                 onClose = {
                     navController.popBackStack()
                 },
-                onSave = {
-                    navController.navigate(Screen.OcrResult.route)
-                },
                 onRetake = {
                     navController.popBackStack()
+                },
+                onCrop = {
+                    // TODO: mở crop editor sau
+                },
+                onRotate = {
+                    // TODO: xử lý rotate bitmap sau
+                },
+                onExtractText = {
+                    sharedCameraViewModel.extractTextFromPreview(context, imageUri)
+                    navController.navigate(Screen.OcrResult.route)
+                },
+                onDone = {
+                    sharedCameraViewModel.extractTextFromPreview(context, imageUri)
+                    navController.navigate(Screen.OcrResult.route)
                 }
             )
         }

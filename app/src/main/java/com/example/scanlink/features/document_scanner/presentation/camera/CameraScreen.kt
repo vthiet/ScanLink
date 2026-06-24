@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +27,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun CameraScreen(
     onClose: () -> Unit,
     onNavigateToPreview: (String) -> Unit,
-    onNavigateToOcrResult: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -38,7 +42,8 @@ fun CameraScreen(
 
     LaunchedEffect(Unit) {
         hasCameraPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.CAMERA
+            context,
+            Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasCameraPermission) {
@@ -46,25 +51,22 @@ fun CameraScreen(
         }
     }
 
-    LaunchedEffect(state.detectedText) {
-        if (state.detectedText.isNotEmpty()) {
-            onNavigateToOcrResult()
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             !hasCameraPermission -> {
-                PermissionDeniedScreen(onRequestPermission = {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                })
+                PermissionDeniedScreen(
+                    onRequestPermission = {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                )
             }
 
             else -> {
                 CameraContent(
                     onClose = onClose,
                     onPhotoCaptured = { uri ->
-                        viewModel.onCaptureSuccess(context, uri)
+                        viewModel.onCaptureSuccess(uri)
+                        onNavigateToPreview(uri)
                     },
                     viewModel = viewModel
                 )
@@ -78,7 +80,7 @@ fun CameraScreen(
                     .background(Color.Black.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(color = Color(0xFF5EEAD4))
             }
         }
     }
@@ -89,7 +91,7 @@ private fun PermissionDeniedScreen(onRequestPermission: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0C)),
+            .background(Color(0xFF101113)),
         contentAlignment = Alignment.Center
     ) {
         Text(
