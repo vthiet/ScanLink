@@ -1,15 +1,22 @@
 package com.example.scanlink.features.document_scanner.presentation.ocr
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import com.example.scanlink.features.document_scanner.presentation.ocr.components.*
 
 @Composable
 fun OcrResultContent(
+    processedBitmap: Bitmap?,
     detectedText: String,
     pdfPath: String?,
     onBackClick: () -> Unit,
@@ -23,6 +30,21 @@ fun OcrResultContent(
         OcrTopBar(
             onBackClick = onBackClick
         )
+
+        // Hiển thị ảnh đã scan ở trên
+        processedBitmap?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = "Scanned Document",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black),
+                contentScale = ContentScale.Fit
+            )
+        }
 
         DocumentInfoCard(
             pdfPath = pdfPath
