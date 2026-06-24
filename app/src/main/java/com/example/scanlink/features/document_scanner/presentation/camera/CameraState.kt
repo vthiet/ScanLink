@@ -5,6 +5,11 @@ import android.graphics.Bitmap
 sealed class CameraUiState {
     object Initial : CameraUiState()
     object Capturing : CameraUiState()
+    // Thêm các trạng thái xử lý chi tiết
+    object Transforming : CameraUiState()
+    object Filtering : CameraUiState()
+    object OcrProcessing : CameraUiState()
+    
     data class Success(val imageUri: String, val mode: String = "Quét") : CameraUiState()
     data class Error(val message: String) : CameraUiState()
 }
@@ -16,6 +21,7 @@ data class CameraUiStateHolder(
     val uiState: CameraUiState = CameraUiState.Initial,
     val isLoading: Boolean = false,
 
+    val originalBitmap: Bitmap? = null, // Lưu ảnh gốc để làm hiệu ứng
     val processedBitmap: Bitmap? = null,
     val detectedText: String = "",
     val pdfPath: String? = null
