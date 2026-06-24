@@ -15,11 +15,12 @@ fun ActionButton(
     text: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    isPrimary: Boolean = false
+    isPrimary: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
 
     Button(
-        onClick = {},
+        onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
