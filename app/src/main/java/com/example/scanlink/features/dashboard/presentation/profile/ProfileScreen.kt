@@ -1,11 +1,10 @@
-package com.example.scanlink.features.document_scanner.presentation.transfer
+package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
 @Preview(showBackground = true, showSystemUi = true)
-
 @Composable
-fun TransferScreen() {
-    TransferContent()
+fun ProfileScreen() {
+    ProfileContent()
 }
