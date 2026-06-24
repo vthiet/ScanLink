@@ -2,11 +2,13 @@ package com.example.scanlink.features.dashboard.presentation.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +22,8 @@ import com.example.scanlink.core.ui.model.home.QuickAction
 
 @Composable
 fun QuickActionSection(
-    actions: List<QuickAction>
+    actions: List<QuickAction>,
+    onActionClick: (QuickAction) -> Unit = {}
 ) {
 
     LazyVerticalGrid(
@@ -36,7 +39,11 @@ fun QuickActionSection(
         items(actions) { action ->
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onActionClick(action) }
+                    .padding(vertical = 4.dp)
             ) {
 
                 Box(
