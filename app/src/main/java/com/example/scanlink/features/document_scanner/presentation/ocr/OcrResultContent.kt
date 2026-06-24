@@ -1,7 +1,6 @@
 package com.example.scanlink.features.document_scanner.presentation.ocr
 
 import android.graphics.Bitmap
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
 import com.example.scanlink.features.document_scanner.presentation.ocr.components.*
 import kotlin.math.roundToInt
 
@@ -40,6 +40,8 @@ fun OcrResultContent(
     processedBitmap: Bitmap?,
     detectedText: String,
     pdfPath: String?,
+    selectedFilter: ScanFilterType,
+    onFilterSelected: (ScanFilterType) -> Unit,
     onBackClick: () -> Unit,
     onSaveToDbClick: () -> Unit
 ) {
@@ -49,15 +51,15 @@ fun OcrResultContent(
     var offsetY by remember { mutableStateOf(0f) }
     val density = LocalDensity.current
     
-    // Giới hạn kéo lên tối đa là 200dp (đủ che phần ảnh)
-    val maxCollapseOffset = with(density) { -200.dp.toPx() }
+    // Tăng giới hạn kéo lên để phủ hết phần ảnh (320dp là điểm bắt đầu)
+    val maxCollapseOffset = with(density) { -320.dp.toPx() }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF111111))
     ) {
-        // 1. LỚP DƯỚI: Chứa phần ảnh (Sẽ bị che khi kéo phần Text lên)
+        // 1. LỚP DƯỚI: Chứa phần ảnh và bộ lọc
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -82,14 +84,20 @@ fun OcrResultContent(
                 }
             }
             
+            // Bộ lọc màu
+            FilterSelector(
+                selectedFilter = selectedFilter,
+                onFilterSelected = onFilterSelected
+            )
+            
             DocumentInfoCard(pdfPath = pdfPath)
         }
 
-        // 2. LỚP TRÊN: Phần Text và Actions (Có thể kéo lên xuống)
+        // 2. LỚP TRÊN: Phần Text và Actions
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .offset { IntOffset(0, (280.dp.toPx() + offsetY).roundToInt()) } // Vị trí bắt đầu dưới phần ảnh
+                .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) } 
                 .background(
                     color = Color(0xFF111111),
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
@@ -98,11 +106,12 @@ fun OcrResultContent(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { delta ->
                         val newOffset = offsetY + delta
-                        offsetY = newOffset.coerceIn(maxCollapseOffset, 0f)
+                        // Cho phép kéo lên hết cỡ để che ảnh, và kéo xuống một chút tạo hiệu ứng bounce
+                        offsetY = newOffset.coerceIn(maxCollapseOffset, 50f)
                     }
                 )
         ) {
-            // Thanh cầm để kéo (Drag Handle)
+            // Thanh cầm để kéo
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,10 +139,9 @@ fun OcrResultContent(
             OcrBottomActions(
                 onCancelClick = onBackClick,
                 onSaveClick = onSaveToDbClick,
-                isSaveEnabled = pdfPath != null
+                isSaveEnabled = true
             )
             
-            // Padding dưới cùng để tránh bị đè bởi Bottom Bar nếu có
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
