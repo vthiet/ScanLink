@@ -8,7 +8,7 @@ sealed class CameraUiState {
     object Transforming : CameraUiState()
     object Filtering : CameraUiState()
     object OcrProcessing : CameraUiState()
-    
+
     data class Success(val imageUri: String, val mode: String = "Quét") : CameraUiState()
     data class Error(val message: String) : CameraUiState()
 }

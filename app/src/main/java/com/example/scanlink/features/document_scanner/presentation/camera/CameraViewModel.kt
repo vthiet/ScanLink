@@ -41,10 +41,10 @@ class CameraViewModel @Inject constructor(
 
     fun onFilterSelected(filterType: ScanFilterType) {
         val transformed = _uiState.value.transformedBitmap ?: return
-        
+
         viewModelScope.launch(Dispatchers.Default) {
             val filtered = scanEngine.applyFilters(transformed, filterType)
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
                     selectedFilter = filterType,
                     processedBitmap = filtered
@@ -66,15 +66,15 @@ class CameraViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true, uiState = CameraUiState.Transforming) }
-                
+
                 val uri = Uri.parse(imageUri)
-                
+
                 // 1. Load và Xoay ảnh đúng chiều dựa trên EXIF
                 val originalBitmap = withContext(Dispatchers.IO) {
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     inputStream?.close()
-                    
+
                     if (bitmap != null) {
                         rotateImageIfRequired(context, bitmap, uri)
                     } else null
@@ -91,27 +91,27 @@ class CameraViewModel @Inject constructor(
                 val (transformed, detected) = withContext(Dispatchers.Default) {
                     scanEngine.transformDocument(originalBitmap)
                 }
-                
-                _uiState.update { 
+
+                _uiState.update {
                     it.copy(
                         transformedBitmap = transformed,
-                        processedBitmap = transformed, 
-                        uiState = CameraUiState.Filtering 
-                    ) 
+                        processedBitmap = transformed,
+                        uiState = CameraUiState.Filtering
+                    )
                 }
 
                 // 3. Apply Default Filter (B&W)
-                kotlinx.coroutines.delay(300) 
+                kotlinx.coroutines.delay(300)
                 val filtered = withContext(Dispatchers.Default) {
                     scanEngine.applyFilters(transformed, ScanFilterType.B_W)
                 }
 
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         processedBitmap = filtered,
                         selectedFilter = ScanFilterType.B_W,
                         uiState = CameraUiState.OcrProcessing
-                    ) 
+                    )
                 }
 
                 // 4. OCR
@@ -135,11 +135,11 @@ class CameraViewModel @Inject constructor(
 
     fun saveDocument(pdfFileName: String = "Scan_${System.currentTimeMillis()}") {
         val bitmap = _uiState.value.processedBitmap ?: return
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             val pdfFile = scanEngine.createPdf(bitmap, pdfFileName)
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
                     isLoading = false,
                     pdfPath = pdfFile?.absolutePath
@@ -151,7 +151,7 @@ class CameraViewModel @Inject constructor(
     private fun rotateImageIfRequired(context: Context, img: Bitmap, selectedImage: Uri): Bitmap {
         val input = context.contentResolver.openInputStream(selectedImage)
         val ei = input?.use { ExifInterface(it) } ?: return img
-        
+
         val orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
 
         return when (orientation) {
