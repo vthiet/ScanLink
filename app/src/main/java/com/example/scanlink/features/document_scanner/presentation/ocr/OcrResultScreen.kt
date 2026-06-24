@@ -13,6 +13,7 @@ fun OcrResultScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     OcrResultContent(
+        processedBitmap = state.processedBitmap,
         detectedText = state.detectedText,
         pdfPath = state.pdfPath,
         onBackClick = onBackClick,
