@@ -43,7 +43,7 @@ fun OcrActionRow(
 
         ActionButton(
             modifier = Modifier.weight(1f),
-            text = "Dịch",
+            text = "Dịch đoạn",
             icon = Icons.Default.Language,
             onClick = { 
                 // Logic dịch văn bản có thể tích hợp sau
