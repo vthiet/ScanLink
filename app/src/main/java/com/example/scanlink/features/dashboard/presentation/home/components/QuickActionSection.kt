@@ -25,42 +25,35 @@ fun QuickActionSection(
     actions: List<QuickAction>,
     onActionClick: (QuickAction) -> Unit = {}
 ) {
-    // Sử dụng Column + Row giúp layout ổn định hơn, không bị cắt chữ hàng dưới
+    // Tách danh sách thành các nhóm, mỗi nhóm tối đa 3 phần tử (đại diện cho 1 hàng)
+    val rows = actions.chunked(3)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-//        val rows = actions.chunked(3)
-        actions.forEach { rowActions ->
+        rows.forEach { rowActions ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                Box(
-                    modifier = Modifier
-                        .size(65.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Image(
-                        painter = painterResource(id = rowActions.iconRes),
-                        contentDescription = null,
-                        modifier = Modifier.size(rowActions.iconSize.dp)
+                // Vòng lặp thứ 2: Duyệt qua từng item trong hàng đó
+                rowActions.forEach { action ->
+                    QuickActionItem(
+                        action = action,
+                        onActionClick = onActionClick,
+                        modifier = Modifier.weight(1f) // Giúp chia đều 3 cột bằng nhau
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = rowActions.title,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
+                if (rowActions.size < 3) {
+                    val placeholders = 3 - rowActions.size
+                    repeat(placeholders) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }

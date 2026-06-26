@@ -1,10 +1,19 @@
 package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.scanlink.features.dashboard.presentation.preferences.DashboardPreferencesViewModel
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun ProfileScreen() {
-    ProfileContent()
+fun ProfileScreen(
+    preferencesViewModel: DashboardPreferencesViewModel = hiltViewModel()
+) {
+    val preferencesState by preferencesViewModel.state.collectAsStateWithLifecycle()
+
+    ProfileContent(
+        preferencesState = preferencesState,
+        onPreferencesEvent = preferencesViewModel::onEvent
+    )
 }
