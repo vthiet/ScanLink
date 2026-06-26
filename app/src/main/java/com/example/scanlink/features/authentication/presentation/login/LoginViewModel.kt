@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanlink.R
 import com.example.scanlink.core.toUserFriendlyErrorResId
 import com.example.scanlink.features.authentication.domain.usecases.LoginWithEmailUseCase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,7 +52,14 @@ class LoginViewModel @Inject constructor(
 
     private fun performLogin() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorResId = null) }
+            // Xóa tất cả lỗi cũ trước khi thử đăng nhập mới
+            _state.update {
+                it.copy(
+                    isLoading = true,
+                    errorResId = null,
+                    passwordErrorResId = null
+                )
+            }
 
             val result = loginUseCase(
                 email = _state.value.emailInput,
@@ -60,20 +68,29 @@ class LoginViewModel @Inject constructor(
 
             result.fold(
                 onSuccess = { entity ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            successUser = entity
-                        )
-                    }
+                    _state.update { it.copy(isLoading = false, successUser = entity) }
                 },
                 onFailure = { err ->
                     err.printStackTrace()
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorResId = err.toUserFriendlyErrorResId()
-                        )
+                    when (err) {
+                        // Sai email/password Firebase → hiển thị lỗi ngay bên dưới field Password
+                        is FirebaseAuthInvalidCredentialsException ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    passwordErrorResId = R.string.error_wrong_password
+                                )
+                            }
+
+                        // Tất cả lỗi còn lại (404 account not synced, network, 500, token...)
+                        // → hiển thị tại error banner phía dưới nút Login
+                        else ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorResId = err.toUserFriendlyErrorResId()
+                                )
+                            }
                     }
                 }
             )

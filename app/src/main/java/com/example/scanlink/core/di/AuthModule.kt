@@ -1,8 +1,6 @@
 package com.example.scanlink.core.di
 
 import com.example.scanlink.BuildConfig
-import com.example.scanlink.features.authentication.data.datasources.remote.AuthRemoteDataSource
-import com.example.scanlink.features.authentication.data.datasources.remote.FirebaseAuthDataSource
 import com.example.scanlink.features.authentication.data.datasources.remote.api.IAuthApiService
 import com.example.scanlink.features.authentication.data.repositories.AuthenticationRepositoryImpl
 import com.example.scanlink.features.authentication.domain.repositories.IAuthenticationRepository
@@ -11,10 +9,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,25 +26,13 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseAuthDataSource(firebaseAuth: FirebaseAuth): FirebaseAuthDataSource {
-        return FirebaseAuthDataSource(firebaseAuth)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAuthRemoteDataSource(): AuthRemoteDataSource {
-        return AuthRemoteDataSource(BuildConfig.BASE_URL)
-    }
-
-    @Provides
-    @Singleton
     @AuthRetrofit
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-                .baseUrl(BuildConfig.BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     @Provides
@@ -58,7 +44,7 @@ object AuthModule {
     @Provides
     @Singleton
     fun provideAuthRepository(
-            authRepositoryImpl: AuthenticationRepositoryImpl
+        authRepositoryImpl: AuthenticationRepositoryImpl
     ): IAuthenticationRepository {
         return authRepositoryImpl
     }

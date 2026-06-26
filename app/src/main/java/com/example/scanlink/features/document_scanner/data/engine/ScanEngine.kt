@@ -6,6 +6,7 @@ import com.example.scanlink.features.document_scanner.data.opencv.DocumentDetect
 import com.example.scanlink.features.document_scanner.data.opencv.ImageFilterProcessor
 import com.example.scanlink.features.document_scanner.data.opencv.PerspectiveTransformer
 import com.example.scanlink.features.document_scanner.data.pdf.PDFProcessor
+import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,40 +28,71 @@ class ScanEngine @Inject constructor() {
         val isDocumentDetected: Boolean
     )
 
-    suspend fun fullProcess(bitmap: Bitmap, pdfFileName: String = "ScanLink_Export"): ScanResult {
-        // 1. Nhận diện vùng giấy
+    /**
+     * Bước 1: Nhận diện và cắt góc tài liệu
+     */
+    fun transformDocument(bitmap: Bitmap): Pair<Bitmap, Boolean> {
         val points = detector.detectDocument(bitmap)
-        
-        val (displayBitmap, ocrBitmap, detected) = if (points != null) {
-            val transformed = transformer.transform(bitmap, points)
-            
-            // Bản 1: Chuyển Đen-Trắng để xuất PDF và hiển thị UI
-            val bw = filterProcessor.applyBlackWhite(transformed)
-            
-            // Bản 2: Sử dụng bộ lọc cao cấp tối ưu riêng cho OCR (Upscaling + Denoise)
-            val ocrPrep = filterProcessor.applyOcrPreparation(transformed)
-            
-            Triple(bw, ocrPrep, true)
-            
+        return if (points != null) {
+            transformer.transform(bitmap, points) to true
         } else {
-            // Nếu không tìm thấy khung, xử lý trên toàn bộ ảnh
-            val bw = filterProcessor.applyBlackWhite(bitmap)
-            val ocrPrep = filterProcessor.applyOcrPreparation(bitmap)
-            Triple(bw, ocrPrep, false)
+            bitmap to false
         }
+    }
 
-        // 2. Trích xuất chữ từ ảnh đã được tối ưu hóa siêu sắc nét
-        val textResult = ocrProcessor.extractText(ocrBitmap)
+    /**
+     * Bước 2: Áp dụng bộ lọc dựa trên loại được chọn
+     */
+    fun applyFilters(bitmap: Bitmap, filterType: ScanFilterType): Bitmap {
+        return when (filterType) {
+            ScanFilterType.ORIGINAL -> bitmap
+            ScanFilterType.B_W -> filterProcessor.applyBlackWhite(bitmap)
+            ScanFilterType.GRAYSCALE -> filterProcessor.applyGrayscale(bitmap)
+            ScanFilterType.MAGIC_COLOR -> filterProcessor.applyMagicColor(bitmap)
+        }
+    }
 
-        // 3. Xuất PDF từ ảnh Đen Trắng
-        val pdfFile = pdfProcessor.createPdfFromBitmaps(listOf(displayBitmap), pdfFileName)
+    /**
+     * Bước 3: Trích xuất chữ
+     */
+    suspend fun extractText(bitmap: Bitmap): String {
+        val ocrPrep = filterProcessor.applyOcrPreparation(bitmap)
+        return ocrProcessor.extractText(ocrPrep)
+    }
+
+    /**
+     * Bước 4: Tạo PDF
+     */
+    fun createPdf(bitmap: Bitmap, fileName: String): File? {
+        return pdfProcessor.createPdfFromBitmaps(listOf(bitmap), fileName)
+    }
+
+    suspend fun fullProcess(bitmap: Bitmap, pdfFileName: String = "ScanLink_Export"): ScanResult {
+        val (transformed, detected) = transformDocument(bitmap)
+        val filtered = applyFilters(transformed, ScanFilterType.B_W)
+        val text = extractText(transformed)
+        val pdf = createPdf(filtered, pdfFileName)
 
         return ScanResult(
             originalBitmap = bitmap,
-            processedBitmap = displayBitmap,
-            extractedText = textResult,
-            pdfFile = pdfFile,
+            processedBitmap = filtered,
+            extractedText = text,
+            pdfFile = pdf,
             isDocumentDetected = detected
         )
+    }
+
+    suspend fun processMultipleImages(
+        bitmaps: List<Bitmap>,
+        pdfFileName: String = "ScanLink_Batch_Export"
+    ): File? {
+        if (bitmaps.isEmpty()) return null
+
+        val processedBitmaps = bitmaps.map { bitmap ->
+            val (transformed, _) = transformDocument(bitmap)
+            applyFilters(transformed, ScanFilterType.B_W)
+        }
+
+        return pdfProcessor.createPdfFromBitmaps(processedBitmaps, pdfFileName)
     }
 }
