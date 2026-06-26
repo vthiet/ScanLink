@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,7 +72,7 @@ fun HomeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1E1E1E))
+            .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
 
@@ -88,8 +89,11 @@ fun HomeContent(
                 .weight(1f)
                 .fillMaxWidth()
                 .background(
-                    color = Color(0xFF2A2A2A),
-                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(
+                        topStart = 30.dp,
+                        topEnd = 30.dp
+                    )
                 )
         ) {
 

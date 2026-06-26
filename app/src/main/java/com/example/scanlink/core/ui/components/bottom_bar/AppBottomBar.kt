@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,9 +67,12 @@ fun AppBottomBar(
                 .size(86.dp)
                 .align(Alignment.TopCenter)
                 .offset(y = (-22).dp)
-                .background(Color.Black, CircleShape)
+                .background(
+                    MaterialTheme.colorScheme.surface,
+                    CircleShape
+                )
                 .padding(8.dp)
-                .background(Color(0xFF00E0A4), CircleShape)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
                 .clickable {
                     onCameraClick()
                 },
@@ -77,7 +81,7 @@ fun AppBottomBar(
             Icon(
                 imageVector = Icons.Default.PhotoCamera,
                 contentDescription = null,
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

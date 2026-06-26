@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +41,8 @@ fun StorageCard() {
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -58,7 +60,7 @@ fun StorageCard() {
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Dung lượng đã dùng",
-                        color = Color(0xFFAAAAAA),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -73,7 +75,7 @@ fun StorageCard() {
                     },
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFDDDDDD)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -85,7 +87,7 @@ fun StorageCard() {
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(Color(0xFF252530))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Box(
                     modifier = Modifier
@@ -106,9 +108,9 @@ fun StorageCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("PDF · 180 MB", fontSize = 10.sp, color = Color(0xFF444444))
-                Text("DOCX · 82 MB", fontSize = 10.sp, color = Color(0xFF444444))
-                Text("JPG · 50 MB", fontSize = 10.sp, color = Color(0xFF444444))
+                Text("PDF · 180 MB", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("DOCX · 82 MB", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("JPG · 50 MB", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
