@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,13 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.scanlink.features.file_sharing.presentation.model.transfer.TransferTab
-
-private val ColorBg = Color(0xFF111113)
-private val ColorAccent = Color(0xFF00CFA4)
-private val ColorAccentText = Color(0xFF0A2E26)
-private val ColorSurface = Color(0xFF1C1C21)
-private val ColorBorder = Color(0xFF252528)
-private val ColorTextMuted = Color(0xFF666666)
 
 private fun tabIconText(tab: TransferTab): String = when (tab) {
     TransferTab.Upload  -> "󰅧"
@@ -45,7 +39,7 @@ fun TransferActionSection(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(ColorBg)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 0.dp)
             .padding(bottom = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -56,10 +50,18 @@ fun TransferActionSection(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (isActive) ColorAccent else ColorSurface)
+                    .background(
+                        if (isActive)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.surface
+                    )
                     .border(
                         width = 1.dp,
-                        color = if (isActive) ColorAccent else ColorBorder,
+                        color = if (isActive)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(10.dp)
                     )
                     .clickable { onTabSelected(tab) }
@@ -68,7 +70,10 @@ fun TransferActionSection(
             ) {
                 Text(
                     text = tab.label,
-                    color = if (isActive) ColorAccentText else ColorTextMuted,
+                    color = if (isActive)
+                        MaterialTheme.colorScheme.onPrimary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
