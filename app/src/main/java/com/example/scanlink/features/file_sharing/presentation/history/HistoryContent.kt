@@ -23,7 +23,9 @@ data class DateGroup(
 )
 
 @Composable
-fun HistoryContent() {
+fun HistoryContent(
+    onFileClick: (String) -> Unit = {}
+) {
 
     val groupedFiles = remember {
         listOf(
@@ -119,7 +121,10 @@ fun HistoryContent() {
 
                 // Files trong group đó
                 items(group.files) { file ->
-                    RecentFileItem(file = file)
+                    RecentFileItem(
+                        file = file,
+                        onClick = { onFileClick(file.id) }
+                    )
                 }
             }
 

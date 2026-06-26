@@ -15,6 +15,10 @@ fun DocumentEntity.toDomain(pages: List<PageEntity>): Document {
         createdAt = createdAt,
         updatedAt = updatedAt,
         isSynced = isSynced,
+        pageCount = pageCount,
+        mimeType = mimeType,
+        thumbnailPath = thumbnailPath,
+        lastModified = lastModified,
         pages = pages.map { it.toDomain() }
     )
 }
@@ -45,7 +49,11 @@ fun Document.toEntity(): DocumentEntity {
         pdfPath = pdfPath,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        isSynced = isSynced
+        isSynced = isSynced,
+        pageCount = pageCount,
+        mimeType = mimeType,
+        thumbnailPath = thumbnailPath,
+        lastModified = lastModified
     )
 }
 

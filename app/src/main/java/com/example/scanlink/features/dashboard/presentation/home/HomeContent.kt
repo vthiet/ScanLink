@@ -27,7 +27,8 @@ import com.example.scanlink.features.dashboard.presentation.home.components.Rece
 @Composable
 fun HomeContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onFileClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     
@@ -128,7 +129,10 @@ fun HomeContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(documents) { file ->
-                    RecentFileItem(file = file)
+                    RecentFileItem(
+                        file = file,
+                        onClick = { onFileClick(file.id) }
+                    )
                 }
             }
         }

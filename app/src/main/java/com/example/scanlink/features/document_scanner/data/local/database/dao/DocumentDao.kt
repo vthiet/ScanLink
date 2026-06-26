@@ -38,6 +38,9 @@ interface DocumentDao {
     @Query("DELETE FROM documents WHERE id = :documentId")
     suspend fun deleteDocumentById(documentId: String): Int
 
+    @Query("UPDATE documents SET title = :title, updatedAt = :updatedAt, lastModified = :updatedAt WHERE id = :documentId")
+    suspend fun renameDocument(documentId: String, title: String, updatedAt: Long): Int
+
     @Transaction
     @Query("SELECT * FROM documents ORDER BY updatedAt DESC")
     fun getAllDocumentsWithPages(): Flow<List<DocumentWithPages>>

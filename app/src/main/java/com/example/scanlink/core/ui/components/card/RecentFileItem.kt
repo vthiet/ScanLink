@@ -1,6 +1,7 @@
 package com.example.scanlink.core.ui.components.card
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,7 +36,8 @@ fun RecentFileItem(
     showDivider: Boolean = false,
 
     onShareClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {}
+    onMoreClick: () -> Unit = {},
+    onClick: () -> Unit = {}
 ) {
 
     Column(modifier = modifier) {
@@ -44,6 +46,7 @@ fun RecentFileItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
+                .clickable(onClick = onClick)
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
