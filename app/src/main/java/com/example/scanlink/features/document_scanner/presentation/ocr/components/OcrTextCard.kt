@@ -24,7 +24,7 @@ fun OcrTextCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1B1B1D)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -43,8 +43,9 @@ fun OcrTextCard(
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 textStyle = TextStyle(
                     fontSize = 14.sp,
@@ -52,7 +53,10 @@ fun OcrTextCard(
                     fontFamily = FontFamily.Monospace
                 ),
                 placeholder = {
-                    Text("Không tìm thấy nội dung chữ.", color = Color.Gray)
+                    Text(
+                        "Không tìm thấy nội dung chữ.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             )
         }

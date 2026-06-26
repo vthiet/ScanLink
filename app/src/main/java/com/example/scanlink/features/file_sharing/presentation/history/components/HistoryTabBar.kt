@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -42,14 +43,17 @@ fun HistoryTabBar() {
 
             Text(
                 text = tab,
-                color = if (isSelected) Color.Black else Color(0xFFB8B8B8),
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .background(
                         color = if (isSelected)
-                            Color(0xFF00E0A4)
+                            MaterialTheme.colorScheme.primary
                         else
-                            Color(0xFF1A1A1D),
+                            MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(30.dp)
                     )
                     .clickable {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,7 +66,7 @@ fun CameraScreen(
                 CameraContent(
                     onClose = onClose,
                     onPhotoCaptured = { uri ->
-                        viewModel.onCaptureSuccess(uri)
+                        viewModel.onCaptureSuccess(context, uri)
                         onNavigateToPreview(uri)
                     },
                     viewModel = viewModel
@@ -80,7 +81,9 @@ fun CameraScreen(
                     .background(Color.Black.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF5EEAD4))
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -96,7 +99,7 @@ private fun PermissionDeniedScreen(onRequestPermission: () -> Unit) {
     ) {
         Text(
             text = "Cần quyền Camera để quét tài liệu",
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
