@@ -1,33 +1,67 @@
 package com.example.scanlink.features.document_scanner.presentation.preview
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
 import com.example.scanlink.features.document_scanner.data.image.PreviewImageProcessor
+import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class PreviewViewModel : ViewModel() {
+@HiltViewModel
+class PreviewViewModel @Inject constructor(
+    private val scanEngine: ScanEngine
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PreviewUiState())
     val uiState: StateFlow<PreviewUiState> = _uiState.asStateFlow()
 
-    fun setImageUri(uri: String) {
+    private var originalBitmap: Bitmap? = null
+
+    fun setImageUri(context: Context, uri: String) {
+        if (_uiState.value.imageUri == uri) return
+
         _uiState.update { it.copy(imageUri = uri, errorMessage = null) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val bitmap = PreviewImageProcessor.loadBitmap(
+                    context = context,
+                    uri = Uri.parse(uri)
+                )
+                originalBitmap = bitmap
+                applyFilterInternal(_uiState.value.selectedFilter)
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.localizedMessage) }
+            }
+        }
+    }
+
+    fun onFilterSelected(filterType: ScanFilterType) {
+        _uiState.update { it.copy(selectedFilter = filterType) }
+        applyFilterInternal(filterType)
+    }
+
+    private fun applyFilterInternal(filterType: ScanFilterType) {
+        val bitmap = originalBitmap ?: return
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = scanEngine.applyFilters(bitmap, filterType)
+            _uiState.update { it.copy(previewBitmap = filtered) }
+        }
     }
 
     fun rotateRight() {
         _uiState.update { it.copy(rotation = normalizeRotation(it.rotation + 90f)) }
-    }
-    fun rotate() {
-        _uiState.update {
-            it.copy(rotation = (it.rotation + 90f) % 360f)
-        }
     }
 
     fun toggleCropMode() {
@@ -41,40 +75,38 @@ class PreviewViewModel : ViewModel() {
         }
     }
 
-    fun saveImage(context: Context, onSaved: (Uri) -> Unit = {}) {
+    fun saveImage(context: Context, onSaved: (String) -> Unit = {}) {
         val state = _uiState.value
-        if (state.imageUri.isBlank()) return
+        val bitmapToSave = state.previewBitmap ?: originalBitmap ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             runCatching {
-                val original = PreviewImageProcessor.loadBitmap(
-                    context = context,
-                    uri = Uri.parse(state.imageUri)
-                )
-
                 val transformed = PreviewImageProcessor.transform(
-                    bitmap = original,
-                    rotation = if (state.cropMode) 0f else state.rotation,
+                    bitmap = bitmapToSave,
+                    rotation = state.rotation,
                     flipHorizontal = state.flipHorizontal,
                     flipVertical = state.flipVertical,
-                    cropCenter = state.cropMode
+                    cropCenter = false
                 )
 
-                PreviewImageProcessor.saveToPictures(
+                val uri = PreviewImageProcessor.saveToPictures(
                     context = context,
                     bitmap = transformed,
-                    fileName = "ScanLink_${System.currentTimeMillis()}"
+                    fileName = "ScanLink_Filtered_${System.currentTimeMillis()}"
                 )
-            }.onSuccess { uri ->
+                uri.toString()
+            }.onSuccess { savedUri ->
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        savedUri = uri.toString()
+                        savedUri = savedUri
                     )
                 }
-                onSaved(uri)
+                withContext(Dispatchers.Main) {
+                    onSaved(savedUri)
+                }
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
@@ -99,31 +131,28 @@ class PreviewViewModel : ViewModel() {
 
     fun applyCrop(context: Context) {
         val state = _uiState.value
-        if (state.imageUri.isBlank()) return
+        val bitmapToCrop = originalBitmap ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             runCatching {
-                val original = PreviewImageProcessor.loadBitmap(
-                    context = context,
-                    uri = Uri.parse(state.imageUri)
-                )
-
                 val cropped = PreviewImageProcessor.cropByRect(
-                    bitmap = original,
+                    bitmap = bitmapToCrop,
                     cropRect = state.cropRect
                 )
+                originalBitmap = cropped
 
-                PreviewImageProcessor.saveToPictures(
+                val uri = PreviewImageProcessor.saveToPictures(
                     context = context,
                     bitmap = cropped,
                     fileName = "ScanLink_crop_${System.currentTimeMillis()}"
                 )
-            }.onSuccess { uri ->
+                uri.toString()
+            }.onSuccess { uriString ->
                 _uiState.update {
                     it.copy(
-                        imageUri = uri.toString(),
+                        imageUri = uriString,
                         rotation = 0f,
                         flipHorizontal = false,
                         flipVertical = false,
@@ -132,6 +161,7 @@ class PreviewViewModel : ViewModel() {
                         isSaving = false
                     )
                 }
+                applyFilterInternal(state.selectedFilter)
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(

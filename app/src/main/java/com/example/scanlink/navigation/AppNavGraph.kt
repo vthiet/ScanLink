@@ -2,9 +2,11 @@ package com.example.scanlink.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -84,9 +86,11 @@ fun AppNavGraph(
             }
 
             val sharedCameraViewModel: CameraViewModel = hiltViewModel(cameraBackStackEntry)
+            val cameraState by sharedCameraViewModel.uiState.collectAsStateWithLifecycle()
 
             PreviewScreen(
                 imageUri = imageUri,
+                cameraUiState = cameraState.uiState,
                 onClose = {
                     navController.popBackStack()
                 },
@@ -94,18 +98,22 @@ fun AppNavGraph(
                     navController.popBackStack()
                 },
                 onCrop = {
-                    // TODO: mở crop editor sau
+                    // Logic crop được xử lý trong PreviewViewModel
                 },
                 onRotate = {
-                    // TODO: xử lý rotate bitmap sau
+                    // Logic rotate được xử lý trong PreviewViewModel
                 },
-                onExtractText = {
-                    sharedCameraViewModel.extractTextFromPreview(context, imageUri)
-                    navController.navigate(Screen.OcrResult.route)
+                onExtractText = { filteredUri ->
+                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
+                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
+                        navController.navigate(Screen.OcrResult.route)
+                    }
                 },
-                onDone = {
-                    sharedCameraViewModel.extractTextFromPreview(context, imageUri)
-                    navController.navigate(Screen.OcrResult.route)
+                onDone = { filteredUri ->
+                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
+                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
+                        navController.navigate(Screen.OcrResult.route)
+                    }
                 }
             )
         }

@@ -16,8 +16,6 @@ fun OcrResultScreen(
         processedBitmap = state.processedBitmap,
         detectedText = state.detectedText,
         pdfPath = state.pdfPath,
-        selectedFilter = state.selectedFilter,
-        onFilterSelected = { viewModel.onFilterSelected(it) },
         onBackClick = onBackClick,
         onSaveToDbClick = {
             viewModel.saveDocument()

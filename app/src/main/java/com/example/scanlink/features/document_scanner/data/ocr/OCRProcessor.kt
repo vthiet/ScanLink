@@ -10,29 +10,26 @@ class OCRProcessor {
 
     suspend fun extractText(bitmap: Bitmap): String {
         return try {
-
-            val recognizer = TextRecognition.getClient(
-                TextRecognizerOptions.DEFAULT_OPTIONS
-            )
-
+            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
             val image = InputImage.fromBitmap(bitmap, 0)
-
             val result = recognizer.process(image).await()
 
-            if (result.text.isBlank()) {
-                return "Không tìm thấy nội dung chữ."
+            if (result.text.isBlank()) return "Không tìm thấy nội dung chữ."
+
+            val sb = StringBuilder()
+            for (block in result.textBlocks) {
+                for (line in block.lines) {
+                    sb.append(line.text).append("\n")
+                }
+                sb.append("\n")
             }
 
-            var text = result.text
+            var text = sb.toString()
 
-            // Ghép các từ bị ngắt dòng bởi dấu gạch nối
-            text = text.replace(
-                Regex("(\\w+)[\\-\u00AD\u2010\u2011\u2012\u2013\u2014\u2015]\\s*\\n\\s*(\\w+)"),
-                "$1$2"
-            )
+            // 4. DỌN DẸP DẤU CÂU NHIỄU (Loại bỏ các dấu : . đứng lẻ loi do hạt nhiễu)
+            text = text.replace(Regex("(?<=\\w)[:\\.]{1,2}(?=\\s|$)"), "")
 
             text.trim()
-
         } catch (e: Exception) {
             "Lỗi nhận diện: ${e.message}"
         }
