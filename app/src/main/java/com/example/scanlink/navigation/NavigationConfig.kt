@@ -1,0 +1,14 @@
+package com.example.scanlink.navigation
+// class này chứa điều kiện ẩn bottom bar
+object NavigationConfig {
+
+    private val hiddenBottomBarRoutes = setOf(
+        Screen.Camera.route,
+        Screen.OcrResult.route
+    )
+
+    fun shouldShowBottomBar(currentRoute: String?): Boolean {
+        return currentRoute !in hiddenBottomBarRoutes &&
+                currentRoute?.startsWith("preview/") != true
+    }
+}
