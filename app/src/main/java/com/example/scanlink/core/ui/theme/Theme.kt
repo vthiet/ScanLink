@@ -21,6 +21,8 @@ private val ScanLinkDarkColorScheme = darkColorScheme(
 
     surfaceVariant = Color(0xFF1E1E24),
     onSurfaceVariant = Color(0xFFCCCCCC),
+    outline = Color(0xFF3A3A42),
+    outlineVariant = Color(0xFF2A2A32),
 
     error = Color(0xFFFF7777),
     onError = Color(0xFF000000)
@@ -40,6 +42,8 @@ private val ScanLinkLightColorScheme = lightColorScheme(
 
     surfaceVariant = Color(0xFFF1F5F9),
     onSurfaceVariant = Color(0xFF334155),
+    outline = Color(0xFFCBD5E1),
+    outlineVariant = Color(0xFFE2E8F0),
 
     error = Color(0xFFDC2626),
     onError = Color(0xFFFFFFFF)

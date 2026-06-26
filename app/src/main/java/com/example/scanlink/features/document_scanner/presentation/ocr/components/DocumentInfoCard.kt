@@ -5,7 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -24,7 +23,8 @@ fun DocumentInfoCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1B1B1D)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
         shape = RoundedCornerShape(18.dp)
     ) {
@@ -35,7 +35,7 @@ fun DocumentInfoCard(
 
             Text(
                 "TÊN TÀI LIỆU",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp
             )
 
@@ -43,7 +43,11 @@ fun DocumentInfoCard(
 
             Text(
                 text = fileName,
-                color = if (pdfPath != null) Color.White else Color.Gray,
+                color = if (pdfPath != null) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
                 fontSize = 16.sp
             )
 
@@ -51,7 +55,7 @@ fun DocumentInfoCard(
 
             Text(
                 text = fileDetail,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
         }

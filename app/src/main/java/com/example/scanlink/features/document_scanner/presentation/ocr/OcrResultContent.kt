@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -57,7 +56,7 @@ fun OcrResultContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF111111))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // 1. LỚP DƯỚI: Chứa phần ảnh và bộ lọc
         Column(
@@ -73,7 +72,9 @@ fun OcrResultContent(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { showFullScreenImage = true },
-                    colors = CardDefaults.cardColors(containerColor = Color.Black)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                 ) {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -97,9 +98,9 @@ fun OcrResultContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) } 
+                .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) }
                 .background(
-                    color = Color(0xFF111111),
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
                 .draggable(
@@ -121,7 +122,7 @@ fun OcrResultContent(
                 Icon(
                     imageVector = Icons.Default.DragHandle,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -171,7 +172,7 @@ fun FullScreenImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
@@ -193,9 +194,13 @@ fun FullScreenImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(16.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f), CircleShape)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +53,10 @@ fun ControlButton(
             .background(Color(0xFF1C1C24))
             .border(
                 width = 1.dp,
-                color = if (isActive) Color(0xFF00CFA4).copy(alpha = 0.6f) else Color(0xFF252532),
+                color = if (isActive)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                else
+                    Color(0xFF252532),
                 shape = RoundedCornerShape(14.dp)
             )
             .clickable { onClick() },
@@ -61,7 +65,10 @@ fun ControlButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isActive) Color(0xFF00CFA4) else Color(0xFF888888),
+            tint = if (isActive)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp)
         )
     }
@@ -81,7 +88,7 @@ fun GalleryButton() {
         Icon(
             imageVector = Icons.Default.PhotoLibrary,
             contentDescription = null,
-            tint = Color(0xFF666666),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
 
