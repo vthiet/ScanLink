@@ -1,14 +1,8 @@
 package com.example.scanlink.features.document_scanner.presentation.preview
 
 import android.graphics.Bitmap
-import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
-
-data class CropRect(
-    val left: Float = 0.08f,
-    val top: Float = 0.08f,
-    val right: Float = 0.92f,
-    val bottom: Float = 0.92f
-)
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 
 data class PreviewUiState(
     val imageUri: String = "",
