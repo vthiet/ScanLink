@@ -57,13 +57,16 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(context, uri)
-                    onPhotoCaptured(uri)
+                    // Khôi phục gọi hàm xử lý kèm lambda
+                    viewModel.onCaptureSuccess(context, uri) {
+                        onPhotoCaptured(uri)
+                    }
                 },
                 isLoading = state.isLoading
             )
         }
 
+        // Lớp phủ hiệu ứng quét laser
         if (state.isLoading) {
             ScanningOverlay(
                 bitmap = state.processedBitmap ?: state.originalBitmap,
