@@ -9,14 +9,3 @@ sealed class CameraUiState {
     data class Error(val message: String) : CameraUiState()
 }
 
-data class CameraUiStateHolder(
-    val selectedMode: String = "Quét",
-    val flashEnabled: Boolean = false,
-    val isFrontCamera: Boolean = false,
-    val uiState: CameraUiState = CameraUiState.Initial,
-    val isLoading: Boolean = false,
-
-    val processedBitmap: Bitmap? = null,
-    val detectedText: String = "",
-    val pdfPath: String? = null
-)
