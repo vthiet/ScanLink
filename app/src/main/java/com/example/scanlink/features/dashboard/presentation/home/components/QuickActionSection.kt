@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,29 +25,32 @@ fun QuickActionSection(
     actions: List<QuickAction>,
     onActionClick: (QuickAction) -> Unit = {}
 ) {
-    // Sử dụng Column + Row giúp layout ổn định hơn, không bị cắt chữ hàng dưới
+    // Tách danh sách thành các nhóm, mỗi nhóm tối đa 3 phần tử (đại diện cho 1 hàng)
+    val rows = actions.chunked(3)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val rows = actions.chunked(3)
         rows.forEach { rowActions ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Vòng lặp thứ 2: Duyệt qua từng item trong hàng đó
                 rowActions.forEach { action ->
                     QuickActionItem(
                         action = action,
                         onActionClick = onActionClick,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f) // Giúp chia đều 3 cột bằng nhau
                     )
                 }
-                // Bù khoảng trống nếu hàng không đủ 3 items
+
                 if (rowActions.size < 3) {
-                    repeat(3 - rowActions.size) {
+                    val placeholders = 3 - rowActions.size
+                    repeat(placeholders) {
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }

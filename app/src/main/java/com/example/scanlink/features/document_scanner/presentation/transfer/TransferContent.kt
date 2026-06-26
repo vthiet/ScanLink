@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -65,7 +66,7 @@ fun TransferContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F0F11))
+            .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
         AppHeader(showSearchBar = true)
@@ -93,7 +94,7 @@ fun TransferContent(
                 item {
                     Text(
                         text = "ĐANG TẢI LÊN",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(vertical = 8.dp)
@@ -108,7 +109,7 @@ fun TransferContent(
             item {
                 Text(
                     text = "GẦN ĐÂY",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp)

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -111,11 +112,16 @@ fun ZoomStrip(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (zoom == "1×") Color(0xFF00CFA4).copy(alpha = 0.25f)
-                        else Color.Transparent
+                        if (zoom == "1×")
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                        else
+                            Color.Transparent
                     )
                     .padding(horizontal = 16.dp, vertical = 7.dp),
-                color = if (zoom == "1×") Color(0xFF00CFA4) else Color(0xFF888888),
+                color = if (zoom == "1×")
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )

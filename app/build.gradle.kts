@@ -8,6 +8,10 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+ksp {
+    arg("room.generateKotlin", "true")
+}
+
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -125,6 +129,13 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
 
     implementation(libs.opencv)
+
+    // =========================================================
+    // ROOM DATABASE
+    // =========================================================
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // =========================================================
     // UI COMPONENTS

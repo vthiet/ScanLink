@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,11 +27,14 @@ import androidx.compose.ui.unit.sp
 import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
-fun MenuItem(item: MenuItemData) {
+fun MenuItem(
+    item: MenuItemData,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -56,13 +60,16 @@ fun MenuItem(item: MenuItemData) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.title,
-                color = if (item.title.contains("Đăng xuất")) Color(0xFFFF7777) else Color(0xFFCCCCCC),
+                color = if (item.title.contains("Đăng xuất"))
+                    MaterialTheme.colorScheme.error
+                else
+                    MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = item.subtitle,
-                color = Color(0xFF444444),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
         }
@@ -89,7 +96,7 @@ fun MenuItem(item: MenuItemData) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = Color(0xFF333333),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }

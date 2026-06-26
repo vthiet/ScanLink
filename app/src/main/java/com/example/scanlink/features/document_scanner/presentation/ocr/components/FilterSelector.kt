@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,15 +40,25 @@ fun FilterSelector(
     ) {
         items(filters) { item ->
             val isSelected = selectedFilter == item.type
+            val containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+            val contentColor = if (isSelected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
             Box(
                 modifier = Modifier
                     .width(80.dp)
                     .height(36.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(if (isSelected) Color(0xFF2ABA8A) else Color(0xFF2A2A2A))
+                    .background(containerColor)
                     .border(
                         width = 1.dp,
-                        color = if (isSelected) Color(0xFF00CFA4) else Color.Transparent,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                         shape = RoundedCornerShape(18.dp)
                     )
                     .clickable { onFilterSelected(item.type) },
@@ -55,7 +66,7 @@ fun FilterSelector(
             ) {
                 Text(
                     text = item.name,
-                    color = Color.White,
+                    color = contentColor,
                     fontSize = 12.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )

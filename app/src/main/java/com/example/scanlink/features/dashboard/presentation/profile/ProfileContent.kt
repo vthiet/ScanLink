@@ -12,19 +12,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scanlink.core.ui.model.MenuItemData
+import com.example.scanlink.features.dashboard.presentation.preferences.DashboardPreferencesEvent
+import com.example.scanlink.features.dashboard.presentation.preferences.DashboardPreferencesState
 import com.example.scanlink.features.dashboard.presentation.profile.components.LogoutSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileHeroSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileMenuSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.StorageCard
 
 @Composable
-fun ProfileContent() {
+fun ProfileContent(
+    preferencesState: DashboardPreferencesState,
+    onPreferencesEvent: (DashboardPreferencesEvent) -> Unit
+) {
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF111113))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
         // Hero Section
@@ -62,11 +67,14 @@ fun ProfileContent() {
             items = listOf(
                 MenuItemData(
                     icon = Icons.Default.DarkMode,
-                    title = "Giao diện tối",
-                    subtitle = "Dark mode đang bật",
-                    color = Color.Gray,
+                    title = if (preferencesState.isDarkTheme) "Giao diện tối" else "Giao diện sáng",
+                    subtitle = if (preferencesState.isDarkTheme)
+                        "Đang sử dụng Dark Mode"
+                    else
+                        "Đang sử dụng Light Mode",
+                    color = MaterialTheme.colorScheme.primary,
                     isToggle = true,
-                    toggleState = true
+                    toggleState = preferencesState.isDarkTheme
                 ),
                 MenuItemData(
                     icon = Icons.Default.Language,
@@ -80,7 +88,10 @@ fun ProfileContent() {
                     subtitle = "Cao · 300 DPI",
                     color = Color(0xFFE8722A)
                 )
-            )
+            ),
+            onToggleClick = { currentValue ->
+                onPreferencesEvent(DashboardPreferencesEvent.DarkThemeChanged(!currentValue))
+            }
         )
 
         ProfileMenuSection(
