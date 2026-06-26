@@ -2,17 +2,15 @@ package com.example.scanlink.features.authentication.domain.repositories
 
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
 
-interface IAuthRepository {
+interface IAuthenticationRepository {
 
-    suspend fun registerWithEmail(
+    suspend fun registerWithEmailAndPassword(
         displayName: String,
-        dateOfBirth: String,
-        gender: String,
         email: String,
         password: String
     ): Result<UserEntity>
 
-    suspend fun loginWithEmail(
+    suspend fun loginWithEmailAndPassword(
         email: String,
         password: String
     ): Result<UserEntity>

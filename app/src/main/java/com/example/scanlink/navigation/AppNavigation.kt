@@ -4,13 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.scanlink.features.authentication.presentation.register.RegisterViewModel
 import com.example.scanlink.features.splash.presentation.SplashScreen
 
 @Composable
-fun AppNavigation(
-    registerViewModel: RegisterViewModel
-) {
+fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(
@@ -32,7 +29,7 @@ fun AppNavigation(
             )
         }
 
-        authGraph(navController, registerViewModel)
+        authGraph(navController)
 
         composable(Routes.MAIN_GRAPH) {
             MainGraph(

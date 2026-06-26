@@ -20,7 +20,6 @@ fun CameraContent(
     onPhotoCaptured: (String) -> Unit = {},
     viewModel: CameraViewModel
 ) {
-    val context = LocalContext.current
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
@@ -57,7 +56,7 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(context, uri)
+                    viewModel.onCaptureSuccess(uri)
                     onPhotoCaptured(uri)
                 },
                 isLoading = state.isLoading
