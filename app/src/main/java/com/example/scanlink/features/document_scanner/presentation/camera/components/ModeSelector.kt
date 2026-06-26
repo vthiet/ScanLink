@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -40,11 +41,17 @@ fun ModeSelector(
                     .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(
-                        if (mode == selectedMode) Color(0xFF00CFA4) else Color.Transparent
+                        if (mode == selectedMode)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            Color.Transparent
                     )
                     .clickable { onModeSelected(mode) }
                     .padding(vertical = 10.dp),
-                color = if (mode == selectedMode) Color(0xFF0A2E26) else Color(0xFF444444),
+                color = if (mode == selectedMode)
+                    MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center

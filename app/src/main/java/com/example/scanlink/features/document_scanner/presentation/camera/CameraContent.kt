@@ -3,7 +3,6 @@ package com.example.scanlink.features.document_scanner.presentation.camera
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraBottomControls
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraViewfinder
+import com.example.scanlink.features.document_scanner.presentation.camera.components.ScanningOverlay
 import com.example.scanlink.features.file_sharing.presentation.ui.camera.components.*
 
 @Composable
@@ -20,12 +20,13 @@ fun CameraContent(
     onPhotoCaptured: (String) -> Unit = {},
     viewModel: CameraViewModel
 ) {
-    val context = LocalContext.current
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Màn hình Camera chính
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,14 +65,10 @@ fun CameraContent(
         }
 
         if (state.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color(0xFF00CFA4))
-            }
+            ScanningOverlay(
+                bitmap = state.processedBitmap ?: state.originalBitmap,
+                state = state.uiState
+            )
         }
     }
 }

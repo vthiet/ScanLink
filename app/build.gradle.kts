@@ -1,11 +1,15 @@
 import java.util.Properties
 
 plugins {
-    id("com.android.application") version "9.2.1"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
-    id("com.google.devtools.ksp") version "2.3.8"
-    id("com.google.dagger.hilt.android") version "2.59.2"
+    id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+}
+
+ksp {
+    arg("room.generateKotlin", "true")
 }
 
 val localProperties = Properties()
@@ -115,6 +119,9 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    
+    // ExifInterface
+    implementation(libs.androidx.exifinterface)
 
     // =========================================================
     // ML KIT
@@ -122,6 +129,13 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
 
     implementation(libs.opencv)
+
+    // =========================================================
+    // ROOM DATABASE
+    // =========================================================
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // =========================================================
     // UI COMPONENTS

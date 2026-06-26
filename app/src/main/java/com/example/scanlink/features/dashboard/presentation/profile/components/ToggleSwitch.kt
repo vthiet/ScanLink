@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +30,10 @@ import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
 fun ToggleSwitch(isChecked: Boolean) {
-    val background = if (isChecked) Color(0xFF00CFA4) else Color(0xFF2A2A35)
+    val background = if (isChecked)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.surfaceVariant
     Box(
         modifier = Modifier
             .size(width = 38.dp, height = 21.dp)
@@ -42,7 +46,7 @@ fun ToggleSwitch(isChecked: Boolean) {
                 .padding(3.dp)
                 .size(15.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.onPrimary)
         )
     }
 }
@@ -52,7 +56,7 @@ fun EditButton() {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF1E1E24))
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, Color(0xFF2A2A30), RoundedCornerShape(20.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -60,13 +64,13 @@ fun EditButton() {
         Icon(
             imageVector = Icons.Default.Edit,
             contentDescription = null,
-            tint = Color(0xFF00CFA4),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = "Chỉnh sửa",
-            color = Color(0xFF00CFA4),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -111,14 +115,16 @@ fun LogoutSection() {
     Card(
         modifier = Modifier.padding(horizontal = 16.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         MenuItem(
             MenuItemData(
                 icon = Icons.Default.Logout,
                 title = "Đăng xuất",
                 subtitle = "Đăng xuất khỏi tài khoản hiện tại",
-                color = Color(0xFFFF4444)
+                color = MaterialTheme.colorScheme.error
             )
         )
     }
