@@ -1,6 +1,7 @@
 package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,11 +21,13 @@ import com.example.scanlink.features.dashboard.presentation.profile.components.S
 @Composable
 fun ProfileContent() {
     val scrollState = rememberScrollState()
+    val isDark = isSystemInDarkTheme()
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF111113))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
         // Hero Section
@@ -62,11 +65,14 @@ fun ProfileContent() {
             items = listOf(
                 MenuItemData(
                     icon = Icons.Default.DarkMode,
-                    title = "Giao diện tối",
-                    subtitle = "Dark mode đang bật",
-                    color = Color.Gray,
+                    title = if (isDark) "Giao diện tối" else "Giao diện sáng",
+                    subtitle = if (isDark)
+                        "Đang sử dụng Dark Mode"
+                    else
+                        "Đang sử dụng Light Mode",
+                    color = MaterialTheme.colorScheme.primary,
                     isToggle = true,
-                    toggleState = true
+                    toggleState = isDark
                 ),
                 MenuItemData(
                     icon = Icons.Default.Language,

@@ -1,5 +1,6 @@
 package com.example.scanlink.features.file_sharing.presentation.history.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,7 +16,7 @@ fun HistoryDateHeader(
 
     Text(
         text = title,
-        color = Color(0xFF8A8A8A),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier

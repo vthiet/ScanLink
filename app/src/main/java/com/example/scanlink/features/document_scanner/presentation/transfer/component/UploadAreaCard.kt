@@ -22,15 +22,19 @@ fun UploadAreaCard() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF1A1A1E))
-            .border(1.dp, Color(0xFF2A2A2F), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant,
+                RoundedCornerShape(20.dp)
+            )
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             imageVector = Icons.Default.CloudUpload,
             contentDescription = null,
-            tint = Color(0xFF00CFA4),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(48.dp)
         )
 
@@ -38,14 +42,14 @@ fun UploadAreaCard() {
 
         Text(
             text = "Kéo thả hoặc chọn file",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )
 
         Text(
             text = "Hỗ trợ PDF, DOCX, JPG - Tối đa 50MB",
-            color = Color(0xFF888888),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 13.sp
         )
 
@@ -53,11 +57,17 @@ fun UploadAreaCard() {
 
         Button(
             onClick = { /* Mở file picker */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00CFA4)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.height(48.dp)
         ) {
-            Text("Chọn file", color = Color.Black, fontWeight = FontWeight.Bold)
+            Text(
+                "Chọn file",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

@@ -22,33 +22,31 @@ fun UploadingFileItem(file: RecentFile) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1F1F24))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon
         Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF00CFA4)),
+                .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Description,
                 contentDescription = null,
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(28.dp)
             )
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Info
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = file.name,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -57,30 +55,28 @@ fun UploadingFileItem(file: RecentFile) {
 
             Text(
                 text = "${file.sizeLabel} • ${file.createdAt}",
-                color = Color(0xFFAAAAAA),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Progress Bar
             LinearProgressIndicator(
                 progress = { file.uploadProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF00CFA4),
-                trackColor = Color(0xFF2A2A2F)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Status
         Text(
-            text = "Xong",
-            color = Color(0xFF00CFA4),
+            text = if (file.uploadProgress >= 1f) "Xong" else "Đang tải",
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium
         )
