@@ -22,6 +22,7 @@ fun CameraContent(
 ) {
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -56,7 +57,7 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(uri)
+                    viewModel.onCaptureSuccess(context, uri)
                     onPhotoCaptured(uri)
                 },
                 isLoading = state.isLoading
