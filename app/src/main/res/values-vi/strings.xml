@@ -9,4 +9,7 @@
     <string name="error_dob_future">Ngày sinh không thể ở tương lai</string>
     <string name="error_dob_invalid">Định dạng ngày không hợp lệ (dd/MM/yyyy)</string>
     <string name="error_password_mismatch">Mật khẩu xác nhận không khớp</string>
+    <string name="error_wrong_password">Email hoặc mật khẩu không đúng</string>
+    <string name="error_user_not_found">Tài khoản không tồn tại. Vui lòng đăng ký trước</string>
+    <string name="error_too_many_requests">Quá nhiều lần thử. Vui lòng thử lại sau</string>
 </resources>

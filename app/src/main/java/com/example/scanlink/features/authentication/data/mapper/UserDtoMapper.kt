@@ -1,6 +1,6 @@
-package com.example.scanlink.features.authentication.data.models
+package com.example.scanlink.features.authentication.data.mapper
 
-import com.example.scanlink.features.authentication.data.remote.UserDto
+import com.example.scanlink.features.authentication.data.datasources.remote.UserDto
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
 
 fun UserDto.toEntity(): UserEntity {

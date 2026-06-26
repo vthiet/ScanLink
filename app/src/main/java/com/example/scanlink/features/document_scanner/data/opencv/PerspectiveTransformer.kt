@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.example.scanlink.features.document_scanner.domain.entities.ScanPoint
 import org.opencv.android.Utils
 import org.opencv.core.*
+import org.opencv.geometry.Geometry
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -40,7 +41,7 @@ class PerspectiveTransformer {
         )
 
         // 4. Thực hiện Warp Perspective
-        val matrix = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
+        val matrix = Geometry.getPerspectiveTransform(srcPoints, dstPoints)
         val warped = Mat()
         Imgproc.warpPerspective(src, warped, matrix, Size(maxWidth.toDouble(), maxHeight.toDouble()))
 

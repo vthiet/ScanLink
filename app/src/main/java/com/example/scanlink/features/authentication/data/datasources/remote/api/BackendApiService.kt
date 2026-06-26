@@ -1,4 +1,4 @@
-package com.example.scanlink.features.authentication.data.remote
+package com.example.scanlink.features.authentication.data.datasources.remote.api
 
 import retrofit2.http.Body
 import retrofit2.http.Header
