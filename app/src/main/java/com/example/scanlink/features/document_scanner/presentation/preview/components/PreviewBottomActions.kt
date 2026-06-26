@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +44,7 @@ fun PreviewBottomActions(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF202124))
+            .background(MaterialTheme.colorScheme.surface)
             .navigationBarsPadding()
     ) {
 
@@ -61,9 +62,9 @@ fun PreviewBottomActions(
                 icon = Icons.Default.Crop,
                 label = "Crop",
                 tint = if (cropMode)
-                    Color(0xFF63DDB4)
+                    MaterialTheme.colorScheme.primary
                 else
-                    Color(0xFFEDEDED),
+                    MaterialTheme.colorScheme.onSurface,
                 onClick = onCrop
             )
             PreviewActionItem(Icons.Default.TextFields, "Extract Text", onClick = onExtractText)
@@ -71,7 +72,7 @@ fun PreviewBottomActions(
             IconButton(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF63DDB4)),
+                    .background(MaterialTheme.colorScheme.primary),
                 onClick = {
                     if (cropMode) {
                         onApplyCrop()
@@ -83,7 +84,7 @@ fun PreviewBottomActions(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Done",
-                    tint = Color(0xFF0F172A)
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -94,7 +95,7 @@ fun PreviewBottomActions(
 private fun PreviewActionItem(
     icon: ImageVector,
     label: String,
-    tint: Color = Color.White,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -102,7 +103,7 @@ private fun PreviewActionItem(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = Color(0xFFEDEDED)
+                tint = tint
             )
         }
         Text(

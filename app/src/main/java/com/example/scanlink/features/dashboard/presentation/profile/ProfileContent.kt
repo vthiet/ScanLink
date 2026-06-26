@@ -1,7 +1,6 @@
 package com.example.scanlink.features.dashboard.presentation.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,16 +12,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scanlink.core.ui.model.MenuItemData
+import com.example.scanlink.features.dashboard.presentation.preferences.DashboardPreferencesEvent
+import com.example.scanlink.features.dashboard.presentation.preferences.DashboardPreferencesState
 import com.example.scanlink.features.dashboard.presentation.profile.components.LogoutSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileHeroSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.ProfileMenuSection
 import com.example.scanlink.features.dashboard.presentation.profile.components.StorageCard
 
 @Composable
-fun ProfileContent() {
+fun ProfileContent(
+    preferencesState: DashboardPreferencesState,
+    onPreferencesEvent: (DashboardPreferencesEvent) -> Unit
+) {
     val scrollState = rememberScrollState()
-    val isDark = isSystemInDarkTheme()
-
 
     Column(
         modifier = Modifier
@@ -65,14 +67,14 @@ fun ProfileContent() {
             items = listOf(
                 MenuItemData(
                     icon = Icons.Default.DarkMode,
-                    title = if (isDark) "Giao diện tối" else "Giao diện sáng",
-                    subtitle = if (isDark)
+                    title = if (preferencesState.isDarkTheme) "Giao diện tối" else "Giao diện sáng",
+                    subtitle = if (preferencesState.isDarkTheme)
                         "Đang sử dụng Dark Mode"
                     else
                         "Đang sử dụng Light Mode",
                     color = MaterialTheme.colorScheme.primary,
                     isToggle = true,
-                    toggleState = isDark
+                    toggleState = preferencesState.isDarkTheme
                 ),
                 MenuItemData(
                     icon = Icons.Default.Language,
@@ -86,7 +88,10 @@ fun ProfileContent() {
                     subtitle = "Cao · 300 DPI",
                     color = Color(0xFFE8722A)
                 )
-            )
+            ),
+            onToggleClick = { currentValue ->
+                onPreferencesEvent(DashboardPreferencesEvent.DarkThemeChanged(!currentValue))
+            }
         )
 
         ProfileMenuSection(

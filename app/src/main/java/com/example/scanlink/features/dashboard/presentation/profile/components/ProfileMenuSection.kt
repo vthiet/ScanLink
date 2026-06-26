@@ -22,7 +22,8 @@ import com.example.scanlink.core.ui.model.MenuItemData
 @Composable
 fun ProfileMenuSection(
     title: String,
-    items: List<MenuItemData>
+    items: List<MenuItemData>,
+    onToggleClick: (Boolean) -> Unit = {}
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
@@ -42,7 +43,14 @@ fun ProfileMenuSection(
         ) {
             Column {
                 items.forEachIndexed { index, item ->
-                    MenuItem(item = item)
+                    MenuItem(
+                        item = item,
+                        onClick = {
+                            if (item.isToggle) {
+                                onToggleClick(item.toggleState)
+                            }
+                        }
+                    )
                     if (index < items.lastIndex) {
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant,
