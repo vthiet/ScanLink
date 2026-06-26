@@ -14,6 +14,7 @@ import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
 import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraScreen
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraViewModel
+import com.example.scanlink.features.document_scanner.presentation.file_detail.FileDetailScreen
 import com.example.scanlink.features.document_scanner.presentation.ocr.OcrResultScreen
 import com.example.scanlink.features.document_scanner.presentation.preview.PreviewScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
@@ -32,7 +33,11 @@ fun AppNavGraph(
     ) {
 
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onFileClick = { documentId ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId))
+                }
+            )
         }
 
         composable(Screen.Transfer.route) {
@@ -40,7 +45,17 @@ fun AppNavGraph(
         }
 
         composable(Screen.History.route) {
-            HistoryScreen()
+            HistoryScreen(
+                onFileClick = { documentId ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId))
+                }
+            )
+        }
+
+        composable(Screen.FileDetail.route) {
+            FileDetailScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Profile.route) {
