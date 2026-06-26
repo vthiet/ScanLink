@@ -65,7 +65,6 @@ fun CameraScreen(
                 CameraContent(
                     onClose = onClose,
                     onPhotoCaptured = { uri ->
-                        viewModel.onCaptureSuccess(uri)
                         onNavigateToPreview(uri)
                     },
                     viewModel = viewModel

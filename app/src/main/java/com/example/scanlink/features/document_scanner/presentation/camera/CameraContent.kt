@@ -21,6 +21,7 @@ fun CameraContent(
     viewModel: CameraViewModel
 ) {
 
+    val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
 
@@ -56,14 +57,16 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(uri)
-                    onPhotoCaptured(uri)
+                    // Gọi onCaptureSuccess với context, uri và lambda điều hướng
+                    viewModel.onCaptureSuccess(context, uri) {
+                        onPhotoCaptured(uri)
+                    }
                 },
                 isLoading = state.isLoading
             )
         }
 
-        // Lớp phủ hiệu ứng quét (Hiển thị khi đang xử lý - Giống CamScanner)
+        // Lớp phủ hiệu ứng quét
         if (state.isLoading) {
             ScanningOverlay(
                 bitmap = state.processedBitmap ?: state.originalBitmap,

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -63,32 +64,26 @@ class CameraViewModel @Inject constructor(
     }
 
     /**
-     * Camera only captures image. Do NOT run OCR here.
-     * Flow: Camera -> Preview -> user taps Extract Text -> OCR.
+     * Thực hiện quy trình quét tài liệu (Scanning Flow)
+     * Transform -> Filter -> OCR -> Chuyển màn hình
      */
-    fun onCaptureSuccess(imageUri: String) {
+    fun onCaptureSuccess(context: Context, imageUri: String, onComplete: () -> Unit) {
         _uiState.update {
             it.copy(
-                uiState = CameraUiState.Success(imageUri, it.selectedMode),
-                isLoading = false,
+                uiState = CameraUiState.Transforming,
+                isLoading = true,
                 capturedImageUri = imageUri,
                 detectedText = "",
                 processedBitmap = null,
                 pdfPath = null
             )
         }
-    }
-
-    fun extractTextFromPreview(context: Context, imageUri: String) {
-        _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _uiState.update { it.copy(isLoading = true, uiState = CameraUiState.Transforming) }
-                
                 val uri = Uri.parse(imageUri)
                 
-                // 1. Load và Xoay ảnh đúng chiều dựa trên EXIF
+                // 1. Load Original Bitmap
                 val originalBitmap = withContext(Dispatchers.IO) {
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val bitmap = BitmapFactory.decodeStream(inputStream)
@@ -106,7 +101,7 @@ class CameraViewModel @Inject constructor(
 
                 _uiState.update { it.copy(originalBitmap = originalBitmap) }
 
-                // 2. Perspective Transform (Cắt phẳng)
+                // 2. Perspective Transform (Cắt phẳng tài liệu)
                 val (transformed, detected) = withContext(Dispatchers.Default) {
                     scanEngine.transformDocument(originalBitmap)
                 }
@@ -119,8 +114,8 @@ class CameraViewModel @Inject constructor(
                     ) 
                 }
 
-                // 3. Apply Default Filter (B&W)
-                kotlinx.coroutines.delay(300) 
+                // 3. Apply Default Filter (B&W) - Delay nhẹ để thấy hiệu ứng
+                delay(700)
                 val filtered = withContext(Dispatchers.Default) {
                     scanEngine.applyFilters(transformed, ScanFilterType.B_W)
                 }
@@ -133,7 +128,82 @@ class CameraViewModel @Inject constructor(
                     ) 
                 }
 
-                // 4. OCR
+                // 4. OCR (Nhận diện chữ viết) - Delay nhẹ để thấy hiệu ứng
+                delay(700)
+                val text = withContext(Dispatchers.Default) {
+                    scanEngine.extractText(transformed)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        detectedText = text.ifBlank { "Không tìm thấy nội dung chữ." },
+                        uiState = CameraUiState.Success(imageUri, it.selectedMode)
+                    )
+                }
+
+                // Chuyển sang màn hình Preview
+                withContext(Dispatchers.Main) {
+                    onComplete()
+                }
+
+            } catch (e: Exception) {
+                onCaptureError("Lỗi xử lý tài liệu: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun extractTextFromPreview(context: Context, imageUri: String) {
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _uiState.update { it.copy(isLoading = true, uiState = CameraUiState.Transforming) }
+                
+                val uri = Uri.parse(imageUri)
+                
+                val originalBitmap = withContext(Dispatchers.IO) {
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    inputStream?.close()
+                    
+                    if (bitmap != null) {
+                        rotateImageIfRequired(context, bitmap, uri)
+                    } else null
+                }
+
+                if (originalBitmap == null) {
+                    onCaptureError("Không thể đọc dữ liệu ảnh chụp.")
+                    return@launch
+                }
+
+                _uiState.update { it.copy(originalBitmap = originalBitmap) }
+
+                val (transformed, detected) = withContext(Dispatchers.Default) {
+                    scanEngine.transformDocument(originalBitmap)
+                }
+                
+                _uiState.update { 
+                    it.copy(
+                        transformedBitmap = transformed,
+                        processedBitmap = transformed, 
+                        uiState = CameraUiState.Filtering 
+                    ) 
+                }
+
+                delay(300) 
+                val filtered = withContext(Dispatchers.Default) {
+                    scanEngine.applyFilters(transformed, ScanFilterType.B_W)
+                }
+
+                _uiState.update { 
+                    it.copy(
+                        processedBitmap = filtered,
+                        selectedFilter = ScanFilterType.B_W,
+                        uiState = CameraUiState.OcrProcessing
+                    ) 
+                }
+
                 val text = withContext(Dispatchers.Default) {
                     scanEngine.extractText(transformed)
                 }
