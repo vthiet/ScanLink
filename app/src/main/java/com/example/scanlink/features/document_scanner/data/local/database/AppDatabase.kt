@@ -8,7 +8,7 @@ import com.example.scanlink.features.document_scanner.data.local.database.entiti
 
 @Database(
     entities = [DocumentEntity::class, PageEntity::class],
-    version = 2,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

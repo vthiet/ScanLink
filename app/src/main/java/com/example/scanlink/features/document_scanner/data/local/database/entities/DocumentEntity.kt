@@ -15,9 +15,5 @@ data class DocumentEntity(
     val pdfPath: String?,
     val createdAt: Long,
     val updatedAt: Long,
-    val isSynced: Boolean = false,
-    val pageCount: Int = 0,
-    val mimeType: String? = null,
-    val thumbnailPath: String? = null,
-    val lastModified: Long? = null
+    val isSynced: Boolean = false
 )
