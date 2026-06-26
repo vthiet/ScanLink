@@ -25,10 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.scanlink.features.authentication.presentation.component.AuthErrorBanner
 import com.example.scanlink.features.authentication.presentation.component.AuthPasswordTextField
 import com.example.scanlink.features.authentication.presentation.component.AuthTextField
 
@@ -57,31 +57,31 @@ fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Text(text = "Welcome back! Please sign in to continue", fontSize = 14.sp, color = Color.Gray)
+            Text(
+                text = "Welcome back! Please sign in to continue",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
 
-            // Email field
+            // ── Field: Email (validation cục bộ: sai định dạng) ──────────────
             AuthTextField(
                 value = state.emailInput,
                 label = "Email",
                 icon = Icons.Default.Email,
                 errorResId = state.emailErrorResId,
-                onValueChange = {
-                    viewModel.onEvent(LoginEvent.EmailChanged(it))
-                }
+                onValueChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) }
             )
 
-            // Password field
+            // ── Field: Password (validation cục bộ + sai credentials Firebase) ─
             AuthPasswordTextField(
                 value = state.passwordInput,
                 label = "Password",
                 icon = Icons.Default.Password,
                 errorResId = state.passwordErrorResId,
-                onValueChange = {
-                    viewModel.onEvent(LoginEvent.PasswordChanged(it))
-                }
+                onValueChange = { viewModel.onEvent(LoginEvent.PasswordChanged(it)) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(48.dp))
@@ -95,16 +95,14 @@ fun LoginContent(
                 ) { Text("Sign in", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
             }
 
-            state.errorResId?.let {
-                Text(
-                    text = stringResource(id = it),
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp),
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            // ── Error Banner: lỗi server / network / account issues ────────────
+            // Hiển thị khi backend không phản hồi, token hết hạn, tài khoản
+            // chưa được đồng bộ sang hệ thống (404), lỗi 500, v.v.
+            AuthErrorBanner(errorResId = state.errorResId)
 
-            TextButton(onClick = onNavigateToRegister) { Text("Don't have an account? Register here") }
+            TextButton(onClick = onNavigateToRegister) {
+                Text("Don't have an account? Register here")
+            }
         }
     }
 }
