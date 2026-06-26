@@ -3,10 +3,10 @@ package com.example.scanlink.features.document_scanner.presentation.camera
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraBottomControls
@@ -30,7 +30,7 @@ fun CameraContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0A0A0C))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             CameraHeader(
                 onClose = onClose,
@@ -41,7 +41,7 @@ fun CameraContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color(0xFF111116)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 CameraViewfinder(

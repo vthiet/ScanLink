@@ -5,11 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +27,7 @@ fun CameraBottomControls(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF0A0A0C))
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         ModeSelector(selectedMode, onModeSelected)
@@ -58,7 +58,7 @@ fun CameraBottomControls(
 
         Text(
             text = "Giữ điện thoại thẳng · Tự động căn chỉnh góc méo",
-            color = Color(0xFF555555),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center

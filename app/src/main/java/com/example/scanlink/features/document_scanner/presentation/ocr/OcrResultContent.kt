@@ -49,7 +49,7 @@ fun OcrResultContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF111111))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // 1. LỚP DƯỚI: Chứa phần ảnh (Đã được áp bộ lọc từ trang Preview)
         Column(
@@ -65,7 +65,7 @@ fun OcrResultContent(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { showFullScreenImage = true },
-                    colors = CardDefaults.cardColors(containerColor = Color.Black)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -87,7 +87,7 @@ fun OcrResultContent(
                 .fillMaxSize()
                 .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) } 
                 .background(
-                    color = Color(0xFF111111),
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
                 .draggable(
@@ -109,7 +109,7 @@ fun OcrResultContent(
                 Icon(
                     imageVector = Icons.Default.DragHandle,
                     contentDescription = null,
-                    tint = Color.DarkGray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
             }
