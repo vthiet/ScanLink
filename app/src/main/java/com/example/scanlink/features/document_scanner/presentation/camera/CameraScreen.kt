@@ -98,7 +98,7 @@ private fun PermissionDeniedScreen(onRequestPermission: () -> Unit) {
     ) {
         Text(
             text = "Cần quyền Camera để quét tài liệu",
-            color = MaterialTheme.colorScheme.onBackground
+            color = Color.White
         )
     }
 }
