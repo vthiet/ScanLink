@@ -5,7 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,19 +37,29 @@ fun QuickActionSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                rowActions.forEach { action ->
-                    QuickActionItem(
-                        action = action,
-                        onActionClick = onActionClick,
-                        modifier = Modifier.weight(1f)
+
+                Box(
+                    modifier = Modifier
+                        .size(65.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Image(
+                        painter = painterResource(id = action.iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(action.iconSize.dp)
                     )
                 }
-                // Bù khoảng trống nếu hàng không đủ 3 items
-                if (rowActions.size < 3) {
-                    repeat(3 - rowActions.size) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = action.title,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

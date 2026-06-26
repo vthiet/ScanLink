@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +44,7 @@ fun RecentFileItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color(0xFF1A1A22))
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -58,7 +59,7 @@ fun RecentFileItem(
 
                 Text(
                     text = file.name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
@@ -84,7 +85,7 @@ fun RecentFileItem(
 
                     Text(
                         text = file.createdAt,
-                        color = Color(0xFF8A8A8A),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
 
@@ -92,7 +93,7 @@ fun RecentFileItem(
 
                         Text(
                             text = " • $it",
-                            color = Color(0xFF8A8A8A),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -108,8 +109,8 @@ fun RecentFileItem(
                             .fillMaxWidth()
                             .height(5.dp)
                             .clip(RoundedCornerShape(50.dp)),
-                        color = Color(0xFF00CFA4),
-                        trackColor = Color(0xFF30303A)
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 }
             }
@@ -138,7 +139,7 @@ fun RecentFileItem(
             Spacer(modifier = Modifier.height(12.dp))
 
             HorizontalDivider(
-                color = Color(0xFF2B2B33)
+                color = MaterialTheme.colorScheme.surfaceVariant
             )
         }
     }

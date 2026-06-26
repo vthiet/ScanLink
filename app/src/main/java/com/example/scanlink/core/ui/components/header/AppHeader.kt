@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,13 +36,13 @@ fun AppHeader(
         Row {
             Text(
                 text = "Scan",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
                 text = "Link",
-                color = Color(0xFF00E0A4),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -58,7 +59,10 @@ fun AppHeader(
                     searchText = it
                 },
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                textStyle = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp
+                ),
                 modifier = Modifier.weight(1f),
                 decorationBox = { innerTextField ->
                     Row(
@@ -66,7 +70,7 @@ fun AppHeader(
                             .fillMaxWidth()
                             .height(42.dp)
                             .clip(RoundedCornerShape(40.dp))
-                            .background(Color(0xFF2A2A2F))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -74,7 +78,7 @@ fun AppHeader(
                             if (searchText.isEmpty()) {
                                 Text(
                                     text = "Tìm kiếm...",
-                                    color = Color.LightGray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp
                                 )
                             }
@@ -84,7 +88,7 @@ fun AppHeader(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = null,
-                            tint = Color(0xFF00E0A4)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -100,12 +104,12 @@ fun AppHeader(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF00E0A4)),
+                .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Q",
-                color = Color(0xFF0A2E26),
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
