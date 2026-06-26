@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,8 +32,8 @@ fun QuickActionSection(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val rows = actions.chunked(3)
-        rows.forEach { rowActions ->
+//        val rows = actions.chunked(3)
+        actions.forEach { rowActions ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -47,16 +48,16 @@ fun QuickActionSection(
                 ) {
 
                     Image(
-                        painter = painterResource(id = action.iconRes),
+                        painter = painterResource(id = rowActions.iconRes),
                         contentDescription = null,
-                        modifier = Modifier.size(action.iconSize.dp)
+                        modifier = Modifier.size(rowActions.iconSize.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = action.title,
+                    text = rowActions.title,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
