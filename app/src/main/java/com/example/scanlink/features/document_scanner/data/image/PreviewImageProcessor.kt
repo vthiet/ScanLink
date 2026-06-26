@@ -9,7 +9,7 @@ import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import com.example.scanlink.features.document_scanner.presentation.preview.CropRect
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
 import java.io.IOException
 
 object PreviewImageProcessor {

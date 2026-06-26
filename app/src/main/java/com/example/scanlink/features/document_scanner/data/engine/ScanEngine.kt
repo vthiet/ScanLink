@@ -6,7 +6,7 @@ import com.example.scanlink.features.document_scanner.data.opencv.DocumentDetect
 import com.example.scanlink.features.document_scanner.data.opencv.ImageFilterProcessor
 import com.example.scanlink.features.document_scanner.data.opencv.PerspectiveTransformer
 import com.example.scanlink.features.document_scanner.data.pdf.PDFProcessor
-import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,14 +19,6 @@ class ScanEngine @Inject constructor() {
     private val filterProcessor = ImageFilterProcessor()
     private val ocrProcessor = OCRProcessor()
     private val pdfProcessor = PDFProcessor()
-
-    data class ScanResult(
-        val originalBitmap: Bitmap,
-        val processedBitmap: Bitmap,
-        val extractedText: String,
-        val pdfFile: File?,
-        val isDocumentDetected: Boolean
-    )
 
     /**
      * Bước 1: Nhận diện và cắt góc tài liệu
@@ -95,4 +87,12 @@ class ScanEngine @Inject constructor() {
 
         return pdfProcessor.createPdfFromBitmaps(processedBitmaps, pdfFileName)
     }
+
+    data class ScanResult(
+        val originalBitmap: Bitmap,
+        val processedBitmap: Bitmap,
+        val extractedText: String,
+        val pdfFile: File?,
+        val isDocumentDetected: Boolean
+    )
 }
