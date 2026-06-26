@@ -2,7 +2,7 @@
 
 ## **DỰ ÁN: SCANLINK (Hệ thống Quét và Quản lý Tài liệu Di động)**
 
-**Phiên bản:** 1.4
+**Phiên bản:** 1.5
 
 **Tuân thủ chuẩn:** IEEE 1016-2009 (Software Design Description)
 
@@ -12,9 +12,10 @@
 | :---: | :---: | :---: | :---: |
 | AI Assistant | 18/05/2026 | Khởi tạo tài liệu SDD từ BRD v4.0. Định nghĩa MVVM, Clean Architecture, Database. | 1.0 |
 | AI Assistant | 18/05/2026 | Tái cấu trúc cấu trúc thư mục Android (Feature-First) và Spring Boot (MVC). | 1.1 |
-| AI Assistant | Hôm nay | Nâng cấp cấu hình Spring Boot Backend lên môi trường Java 25 LTS. | 1.2 |
+| AI Assistant | 18/05/2026 | Nâng cấp cấu hình Spring Boot Backend lên môi trường Java 25 LTS. | 1.2 |
 | AI Assistant | 24/06/2026 | Bổ sung chương Interface Design (Mục 5.2 & 5.3) đặc tả chi tiết 9 REST API endpoints theo tiêu chuẩn IEEE Std 1016-2009. | 1.3 |
 | AI Assistant | 24/06/2026 | Cập nhật thiết kế dữ liệu (Data Design) và sơ đồ ERD quyết định sử dụng MongoDB. | 1.4 |
+| AI Assistant | 24/06/2026 | Bổ sung tính năng đăng nhập Google Account: cập nhật luồng xác thực (5.1), ERD (thêm `providerId`), mã HTTP (thêm 409), đặc tả [INT-API-001] idempotent, bổ sung [INT-API-010]. Tạo tài liệu đặc tả riêng `Google_Sign_In_Feature_Specification.md`. | 1.5 |
 
 ## **1. GIỚI THIỆU (INTRODUCTION)**
 
@@ -200,11 +201,12 @@ erDiagram
         string uid PK "Firebase UID (Định danh chính)"
         string email "Định danh duy nhất"
         string display_name "Tên hiển thị"
-        string photo_url "Đường dẫn ảnh đại diện"
+        string photo_url "Đường dẫn ảnh đại diện (Google: từ Google Profile)"
         string role "Vai trò (USER, ADMIN)"
         boolean is_active "Trạng thái hoạt động"
         string date_of_birth "Ngày sinh"
         string gender "Giới tính"
+        string provider_id "Phương thức đăng nhập: password hoặc google.com"
         date created_at "Ngày tạo"
         date updated_at "Ngày cập nhật"
         int storage_used "Tính bằng Bytes"
@@ -245,26 +247,70 @@ erDiagram
 
 ### **5.1 Luồng Xác thực (Authentication Flow)**
 
-Mọi yêu cầu gọi tài nguyên riêng tư trên API của Spring Boot Backend đều được xác thực và phân quyền thông qua bộ đôi Firebase Authentication và Spring Security Filter.
+Mọi yêu cầu gọi tài nguyên riêng tư trên API của Spring Boot Backend đều được xác thực và phân quyền thông qua bộ đôi Firebase Authentication và Spring Security Filter. Hệ thống hỗ trợ hai phương thức xác thực: **Email/Password** và **Google Account**.
+
+#### **5.1.1 Luồng Email / Password**
 
 ``` mermaid
 sequenceDiagram
     participant User
     participant App as Android Client
     participant Firebase as Firebase Auth
-    participant Spring as Spring Boot MVC
+    participant Backend as Spring Boot Backend
 
-    User->>App: Nhập thông tin đăng nhập (Email / Google)
-    App->>Firebase: Thực thi Auth SDK gửi thông tin
-    Firebase-->>App: Trả về trạng thái đăng nhập + ID Token (JWT)
+    User->>App: Nhập Email + Password
+    App->>Firebase: signInWithEmailAndPassword / createUserWithEmailAndPassword
+    Firebase-->>App: FirebaseUser + ID Token (JWT)
 
-    Note over App,Spring: Gọi API tải lên hoặc sửa đổi tệp
-    App->>Spring: POST /api/v1/documents<br/>Authorization: Bearer {ID_Token}
-    Spring->>Spring: Spring Security intercept request & giải mã token
-    Spring->>Firebase: Sử dụng Firebase Admin SDK kiểm tra tính hợp lệ của token
-    Firebase-->>Spring: Trả về Claims & UID người dùng hợp lệ
-    Spring->>Spring: Service xử lý nghiệp vụ, đối chiếu UID & ghi nhận tệp
-    Spring-->>App: Trả về HTTP 200 OK + Metadata tài liệu
+    App->>Backend: POST /api/v1/auth/register (đăng ký mới)<br/>Authorization: Bearer {ID_Token}
+    Backend->>Firebase: Firebase Admin SDK verifyIdToken()
+    Firebase-->>Backend: Claims hợp lệ (uid, email, name)
+    Backend-->>App: 201 Created — UserResponse
+
+    Note over App,Backend: Các lần đăng nhập tiếp theo
+    App->>Backend: POST /api/v1/auth/login<br/>Authorization: Bearer {ID_Token}
+    Backend-->>App: 200 OK — UserResponse
+
+    Note over App,Backend: Gọi API tài nguyên
+    App->>Backend: POST /api/v1/documents<br/>Authorization: Bearer {ID_Token}
+    Backend->>Firebase: verifyIdToken()
+    Firebase-->>Backend: Claims hợp lệ
+    Backend-->>App: 200 OK + Dữ liệu tài nguyên
+
+```
+
+#### **5.1.2 Luồng Google Account (Google Sign-In)**
+
+> Xem tài liệu đặc tả chi tiết: [`Google_Sign_In_Feature_Specification.md`](./Google_Sign_In_Feature_Specification.md)
+
+``` mermaid
+sequenceDiagram
+    participant User
+    participant App as Android Client
+    participant GIS as Google Identity Services
+    participant Firebase as Firebase Auth
+    participant Backend as Spring Boot Backend
+
+    User->>App: Nhấn "Sign in with Google"
+    App->>GIS: Khởi tạo Google Sign-In Intent (requestIdToken)
+    GIS-->>User: Hiển thị bảng chọn tài khoản Google
+    User->>GIS: Chọn tài khoản
+    GIS-->>App: GoogleSignInAccount (chứa Google ID Token)
+
+    App->>Firebase: signInWithCredential(GoogleAuthProvider.getCredential(...))
+    Firebase-->>App: FirebaseUser + Firebase ID Token (JWT)
+
+    App->>Backend: POST /api/v1/auth/login<br/>Authorization: Bearer {Firebase_ID_Token}
+    alt 200 OK — Tài khoản đã tồn tại
+        Backend-->>App: UserResponse
+    else 404 Not Found — Chưa đồng bộ backend
+        App->>Backend: POST /api/v1/auth/register<br/>Authorization: Bearer {Firebase_ID_Token}
+        Backend->>Firebase: verifyIdToken() → trích xuất name, picture, sign_in_provider
+        Firebase-->>Backend: Claims hợp lệ
+        Backend-->>App: 201 Created — UserResponse (providerId: "google.com")
+    end
+
+    App-->>User: Chuyển đến Dashboard
 
 ```
 
@@ -288,6 +334,7 @@ sequenceDiagram
     *   `401 Unauthorized`: Token xác thực (Firebase JWT) không hợp lệ hoặc đã hết hạn.
     *   `403 Forbidden`: Người dùng không có quyền truy cập hoặc thao tác trên tài nguyên này.
     *   `404 Not Found`: Không tìm thấy tài nguyên được yêu cầu.
+    *   `409 Conflict`: Tài nguyên đã tồn tại và không thể tạo trùng (ví dụ: email đã được đăng ký bằng phương thức xác thực khác).
     *   `410 Gone`: Tài nguyên không còn khả dụng (ví dụ: liên kết chia sẻ hết hạn).
     *   `413 Payload Too Large`: Kích thước tệp tải lên vượt quá giới hạn cho phép (10MB).
     *   `500 Internal Server Error`: Lỗi hệ thống backend.
@@ -297,16 +344,16 @@ sequenceDiagram
 #### **5.3.1 Nhóm Giao diện Xác thực & Người dùng (Authentication & User Sync)**
 
 ##### **[INT-API-001] Đăng ký / Đồng bộ thông tin người dùng**
-*   **Mục đích (Purpose):** Đồng bộ thông tin người dùng từ Firebase Authentication về cơ sở dữ liệu hệ thống (MongoDB). Thực hiện tạo mới nếu người dùng chưa tồn tại hoặc cập nhật thông tin mới nhất.
+*   **Mục đích (Purpose):** Đồng bộ thông tin người dùng từ Firebase Authentication về cơ sở dữ liệu hệ thống (MongoDB). Endpoint này là **idempotent** — nếu UID đã tồn tại thì cập nhật thông tin mới nhất và trả về `200 OK`; nếu chưa tồn tại thì tạo mới và trả về `201 Created`. Dùng cho cả Email/Password và **Google Sign-In**.
 *   **Phương thức & Đường dẫn (HTTP Method & Path):** `POST /api/v1/auth/register`
 *   **Yêu cầu Xác thực (Authentication):** Có (Firebase ID Token trong Header Authorization).
 *   **Đặc tả Đầu vào (Input Specification):**
     *   **Headers:**
-        *   `Authorization`: `Bearer {Firebase_ID_Token}` (Bắt buộc)
+        *   `Authorization`: `Bearer {Firebase_ID_Token}` (Bắt buộc — hỗ trợ cả Google provider và Email/Password provider)
         *   `Content-Type`: `application/json`
-    *   **Body:** Trống (Spring Boot sử dụng Firebase Admin SDK giải mã token lấy thông tin UID, Email, Display Name, Photo URL).
+    *   **Body:** Trống. Backend sử dụng Firebase Admin SDK (`verifyIdToken`) để trích xuất: `uid`, `email`, `name` (display name), `picture` (photo URL), `email_verified`, và `firebase.sign_in_provider` từ token claims.
 *   **Đặc tả Đầu ra (Output Specification):**
-    *   **HTTP Status:** `200 OK` (Đồng bộ thành công) hoặc `201 Created` (Tạo mới người dùng thành công).
+    *   **HTTP Status:** `200 OK` (UID đã tồn tại — cập nhật) hoặc `201 Created` (tạo mới người dùng).
     *   **Response Body (JSON):**
         ```json
         {
@@ -321,11 +368,13 @@ sequenceDiagram
             "isActive": true,
             "dateOfBirth": null,
             "gender": null,
+            "providerId": "google.com",
             "createdAt": "2026-06-24T15:52:44",
             "updatedAt": "2026-06-24T15:52:44"
           }
         }
         ```
+        > Trường `providerId` nhận giá trị `"google.com"` (Google Sign-In) hoặc `"password"` (Email/Password).
 *   **Kịch bản ngoại lệ (Exception Scenarios):**
     *   `401 Unauthorized`: Token Firebase không hợp lệ hoặc đã hết hạn.
 
@@ -622,4 +671,38 @@ sequenceDiagram
         ```
     *   `404 Not Found`: Liên kết chia sẻ không tồn tại trên hệ thống.
 
-**[KẾT THÚC TÀI LIỆU ĐẶC TẢ THIẾT KẾ - SDD]**
+---
+
+#### **5.3.4 Bổ sung đặc tả Google Sign-In**
+
+##### **[INT-API-010] Kiểm tra & Đồng bộ tài khoản Google (Google Account Sync)**
+
+> Tính năng Google Sign-In **tái sử dụng** các endpoint [INT-API-001] và [INT-API-002] đã định nghĩa. Phần này mô tả rõ chiến lược Client phối hợp hai endpoint để xử lý Google Sign-In một cách tự động.
+
+*   **Mục đích (Purpose):** Khi người dùng đăng nhập bằng Google, Client không biết trước liệu họ đã có tài khoản backend hay chưa. Chiến lược dưới đây giải quyết vấn đề này mà không cần endpoint mới.
+*   **Chiến lược thực hiện (Client Strategy):**
+
+    ```
+    Bước 1: Firebase signInWithCredential(GoogleAuthProvider) → Lấy Firebase ID Token
+    Bước 2: POST /api/v1/auth/login (Bearer {Firebase_ID_Token})
+             ├── 200 OK  → Đăng nhập thành công, trả về UserResponse ✅
+             └── 404    → Chưa có tài khoản backend
+                            ↓
+                        POST /api/v1/auth/register (Bearer {Firebase_ID_Token})
+                             ├── 201 Created → Tạo tài khoản + Đăng nhập ✅
+                             └── Lỗi khác   → Hiện ErrorBanner ❌
+    ```
+
+*   **Yêu cầu Backend (Backend Requirements):**
+    *   **[INT-API-001] `/auth/register` PHẢI idempotent:** Nếu `uid` đã tồn tại → cập nhật `photoUrl`, `updatedAt` và trả về `200 OK`. Không được ném lỗi hay tạo bản ghi trùng.
+    *   **Trích xuất `sign_in_provider`:** Trong `AuthService.syncUser()`, backend PHẢI đọc `claims["firebase"]["sign_in_provider"]` từ `FirebaseToken` để ghi nhận `providerId = "google.com"` vào `UserEntity`.
+    *   **Cập nhật `photoUrl` động:** Trong `AuthService.loginUser()`, nếu `claims["picture"]` khác với `photoUrl` hiện tại trong DB → tự động cập nhật (ảnh đại diện Google có thể thay đổi).
+    *   **Email Collision Policy:** Nếu người dùng đã đăng ký Email/Password với cùng email và sau đó thử Google Sign-In, Firebase sẽ tự động liên kết 2 provider vào cùng một UID. Backend không cần xử lý thêm — cùng `uid` sẽ match cùng `UserEntity`.
+
+*   **Response Contract:** Giống hệt [INT-API-001] và [INT-API-002] — chỉ có thêm trường `providerId` trong `data`.
+
+*   **Tài liệu tham khảo đầy đủ:** [`docs/Google_Sign_In_Feature_Specification.md`](./Google_Sign_In_Feature_Specification.md)
+
+---
+
+**[KẾT THÚC TÀI LIỆU ĐẶC TẢ THIẾT KẾ - SDD v1.5]**
