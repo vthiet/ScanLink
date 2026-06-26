@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -50,13 +49,13 @@ fun ControlButton(
         modifier = Modifier
             .size(44.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF1C1C24))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
                 color = if (isActive)
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                 else
-                    Color(0xFF252532),
+                    MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(14.dp)
             )
             .clickable { onClick() },
@@ -80,8 +79,8 @@ fun GalleryButton() {
         modifier = Modifier
             .size(50.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF1C1C24))
-            .border(1.dp, Color(0xFF252532), RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp))
             .clickable { /* Open gallery */ },
         contentAlignment = Alignment.Center
     ) {

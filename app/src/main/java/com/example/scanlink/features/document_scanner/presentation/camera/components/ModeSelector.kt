@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,8 +28,8 @@ fun ModeSelector(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF15151A))
-            .border(1.dp, Color(0xFF1E1E26), RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
@@ -44,7 +43,7 @@ fun ModeSelector(
                         if (mode == selectedMode)
                             MaterialTheme.colorScheme.primary
                         else
-                            Color.Transparent
+                            androidx.compose.ui.graphics.Color.Transparent
                     )
                     .clickable { onModeSelected(mode) }
                     .padding(vertical = 10.dp),
