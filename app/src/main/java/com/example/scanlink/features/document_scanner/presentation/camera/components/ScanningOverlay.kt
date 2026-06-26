@@ -1,10 +1,12 @@
 package com.example.scanlink.features.document_scanner.presentation.camera.components
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraUiState
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ScanningOverlay(
     modifier: Modifier = Modifier,
@@ -58,7 +61,7 @@ fun ScanningOverlay(
         // 2. Hiệu ứng đường quét (Laser line)
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val scanLineY = maxHeight * translateY
-            
+
             // Đường quét màu xanh neon
             Box(
                 modifier = Modifier
@@ -67,11 +70,15 @@ fun ScanningOverlay(
                     .offset(y = scanLineY)
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color.Transparent, Color(0xFF00CFA4), Color.Transparent)
+                            listOf(
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.primary,
+                                Color.Transparent
+                            )
                         )
                     )
             )
-            
+
             // Hiệu ứng phát sáng mờ phía sau đường quét
             Box(
                 modifier = Modifier
@@ -82,7 +89,7 @@ fun ScanningOverlay(
                         Brush.verticalGradient(
                             listOf(
                                 Color.Transparent,
-                                Color(0xFF00CFA4).copy(alpha = 0.2f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                 Color.Transparent
                             )
                         )
@@ -100,7 +107,7 @@ fun ScanningOverlay(
         ) {
             Text(
                 text = statusText,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )

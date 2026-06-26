@@ -27,11 +27,14 @@ import androidx.compose.ui.unit.sp
 import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
-fun MenuItem(item: MenuItemData) {
+fun MenuItem(
+    item: MenuItemData,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

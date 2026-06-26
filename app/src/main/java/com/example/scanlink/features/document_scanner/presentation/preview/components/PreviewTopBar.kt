@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,13 +40,12 @@ fun PreviewTopBar(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = Color.White
-            )
+                tint = MaterialTheme.colorScheme.onBackground            )
         }
 
         Text(
             text = if (cropMode) "Crop" else title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f)
@@ -61,7 +61,7 @@ fun PreviewTopBar(
                     else
                         Icons.Default.Check,
                 contentDescription = null,
-                tint = Color(0xFF63DDB4)
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }

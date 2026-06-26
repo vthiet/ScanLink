@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scanlink.core.ui.components.bottom_bar.model.items
 
@@ -30,7 +29,7 @@ fun AppBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(90.dp)
-                .background(Color.Black),
+                .background(MaterialTheme.colorScheme.surface),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,13 +44,22 @@ fun CameraHeader(
                     .border(1.dp, Color(0xFF2A2A32), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color(0xFFAAAAAA))
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Text("Camera", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            text = "Camera",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -86,7 +96,10 @@ fun HeaderActionButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isActive) Color(0xFF00CFA4) else Color(0xFFAAAAAA),
+            tint = if (isActive)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
     }

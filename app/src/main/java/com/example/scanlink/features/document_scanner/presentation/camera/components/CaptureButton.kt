@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +39,11 @@ fun CaptureButton(
         modifier = Modifier
             .size(72.dp)
             .clip(CircleShape)
-            .border(4.dp, Color(0xFF00CFA4), CircleShape)
+            .border(
+                4.dp,
+                MaterialTheme.colorScheme.primary,
+                CircleShape
+            )
             .clickable(enabled = !isLoading) {
                 if (!isLoading) {
                     takePhoto(imageCapture, context, onPhotoCaptured)
@@ -50,12 +55,17 @@ fun CaptureButton(
             modifier = Modifier
                 .size(58.dp)
                 .clip(CircleShape)
-                .background(if (isLoading) Color.Gray else Color(0xFF00CFA4)),
+                .background(
+                    if (isLoading)
+                        MaterialTheme.colorScheme.surfaceVariant
+                    else
+                        MaterialTheme.colorScheme.primary
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(28.dp),
                     strokeWidth = 3.dp
                 )
@@ -63,7 +73,7 @@ fun CaptureButton(
                 Icon(
                     imageVector = Icons.Default.Camera,
                     contentDescription = "Chụp",
-                    tint = Color(0xFF0A2E26),
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(32.dp)
                 )
             }
