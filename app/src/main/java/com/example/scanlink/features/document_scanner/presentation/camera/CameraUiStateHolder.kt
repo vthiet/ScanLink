@@ -8,6 +8,9 @@ data class CameraUiStateHolder(
     val isFrontCamera: Boolean = false,
     val uiState: CameraUiState = CameraUiState.Initial,
     val isLoading: Boolean = false,
+    val originalBitmap: Bitmap? = null,
+    val transformedBitmap: Bitmap? = null,
+    val selectedFilter: ScanFilterType = ScanFilterType.ORIGINAL,
 
     val processedBitmap: Bitmap? = null,
     val detectedText: String = "",
