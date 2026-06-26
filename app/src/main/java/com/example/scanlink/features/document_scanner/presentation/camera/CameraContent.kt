@@ -63,7 +63,6 @@ fun CameraContent(
             )
         }
 
-        // Lớp phủ hiệu ứng quét (Hiển thị khi đang xử lý - Giống CamScanner)
         if (state.isLoading) {
             ScanningOverlay(
                 bitmap = state.processedBitmap ?: state.originalBitmap,

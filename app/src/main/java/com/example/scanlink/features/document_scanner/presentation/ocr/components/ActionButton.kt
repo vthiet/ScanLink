@@ -5,7 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,7 +25,16 @@ fun ActionButton(
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(horizontal = 4.dp), // Giảm padding để ưu tiên diện tích chữ
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isPrimary) Color(0xFF2ABA8A) else Color(0xFF1E1E1E)
+            containerColor = if (isPrimary) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            contentColor = if (isPrimary) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
         )
     ) {
         Icon(

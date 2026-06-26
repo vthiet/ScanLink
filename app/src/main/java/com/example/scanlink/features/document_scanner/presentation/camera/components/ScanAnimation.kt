@@ -3,6 +3,7 @@ package com.example.scanlink.features.document_scanner.presentation.camera.compo
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,7 +14,6 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScanAnimation() {
-
     val infiniteTransition = rememberInfiniteTransition(label = "")
 
     val offsetY by infiniteTransition.animateFloat(
@@ -30,11 +30,9 @@ fun ScanAnimation() {
     )
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart
     ) {
-
         Box(
             modifier = Modifier
                 .offset(y = offsetY.dp)
@@ -45,7 +43,7 @@ fun ScanAnimation() {
                     brush = Brush.horizontalGradient(
                         listOf(
                             Color.Transparent,
-                            Color(0xFF00E0A4),
+                            MaterialTheme.colorScheme.primary,
                             Color.Transparent
                         )
                     )
