@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,13 +37,15 @@ fun ProfileHeroSection() {
             Text(
                 text = buildAnnotatedString {
                     append("Scan")
-                    withStyle(SpanStyle(color = Color(0xFF00CFA4))) {
+                    withStyle(
+                        SpanStyle(color = MaterialTheme.colorScheme.primary)
+                    ) {
                         append("Link")
                     }
                 },
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             EditButton()
@@ -60,14 +63,14 @@ fun ProfileHeroSection() {
                 modifier = Modifier
                     .size(92.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF00CFA4)),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Q",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0A2E26)
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -79,13 +82,17 @@ fun ProfileHeroSection() {
                     .size(32.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF42A5F5))
-                    .border(3.dp, Color(0xFF111113), CircleShape),
+                    .border(
+                        3.dp,
+                        MaterialTheme.colorScheme.background,
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -97,13 +104,13 @@ fun ProfileHeroSection() {
             text = "Đỗ Minh Quốc",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Text(
             text = "minhquocxzd@gmail.com",
             fontSize = 13.sp,
-            color = Color(0xFF555555)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         PlanBadge()

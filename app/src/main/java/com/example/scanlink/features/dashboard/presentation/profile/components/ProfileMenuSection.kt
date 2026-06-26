@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,7 +27,7 @@ fun ProfileMenuSection(
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = title,
-            color = Color(0xFF444444),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.8.sp,
@@ -34,13 +36,18 @@ fun ProfileMenuSection(
 
         Card(
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24))
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column {
                 items.forEachIndexed { index, item ->
                     MenuItem(item = item)
                     if (index < items.lastIndex) {
-                        Divider(color = Color(0xFF1C1C22), thickness = 1.dp)
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
                     }
                 }
             }

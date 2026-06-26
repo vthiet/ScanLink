@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +30,7 @@ fun HistorySearchBar() {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .background(
-                color = Color(0xFF17181C),
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 14.dp, vertical = 12.dp),
@@ -40,7 +41,7 @@ fun HistorySearchBar() {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(10.dp))
@@ -52,7 +53,7 @@ fun HistorySearchBar() {
             },
             singleLine = true,
             textStyle = TextStyle(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp
             ),
             modifier = Modifier.weight(1f),
@@ -63,7 +64,7 @@ fun HistorySearchBar() {
                     if (search.isEmpty()) {
                         Text(
                             text = "Tìm kiếm trong lịch sử...",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp
                         )
                     }
@@ -76,7 +77,7 @@ fun HistorySearchBar() {
         Icon(
             imageVector = Icons.Default.Tune,
             contentDescription = null,
-            tint = Color(0xFF00E0A4)
+            tint = MaterialTheme.colorScheme.primary
         )
     }
 }
