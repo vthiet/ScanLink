@@ -1,17 +1,34 @@
 package com.example.scanlink.features.document_scanner.domain.repositories
 
-import android.graphics.Bitmap
-import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 import java.io.File
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 
+/**
+ * Interface nghiệp vụ xử lý ảnh.
+ */
 interface IScanProcessingRepository {
-    fun transformDocument(bitmap: Bitmap): Pair<Bitmap, Boolean>
+    /**
+     * Nhận diện và làm phẳng tài liệu.
+     */
+    fun transformDocument(image: Any): Pair<Any, Boolean>
 
-    fun applyFilters(bitmap: Bitmap, filterType: ScanFilterType): Bitmap
+    /**
+     * Áp dụng bộ lọc màu.
+     */
+    fun applyFilters(image: Any, filterType: ScanFilterType): Any
 
-    suspend fun extractText(bitmap: Bitmap): String
+    /**
+     * Trích xuất văn bản từ ảnh.
+     */
+    suspend fun extractText(image: Any): String
 
-    fun createPdf(bitmap: Bitmap, fileName: String): File?
+    /**
+     * Tạo file PDF từ một ảnh.
+     */
+    fun createPdf(image: Any, fileName: String): File?
 
-    suspend fun processMultipleImages(bitmaps: List<Bitmap>, pdfFileName: String): File?
+    /**
+     * Xử lý và tạo PDF từ danh sách ảnh.
+     */
+    suspend fun processMultipleImages(images: List<Any>, pdfFileName: String): File?
 }
