@@ -225,6 +225,16 @@ class CameraViewModel @Inject constructor(
         }
     }
 
+    fun onFilterSelected(filterType: ScanFilterType) {
+        val bitmap = _uiState.value.processedBitmap ?: return
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = applyScanFilterUseCase(bitmap, filterType)
+            _uiState.update { 
+                it.copy(selectedFilter = filterType, processedBitmap = filtered as? Bitmap)
+            }
+        }
+    }
+
     private fun rotateImageIfRequired(context: Context, img: Bitmap, selectedImage: Uri): Bitmap {
         val input = context.contentResolver.openInputStream(selectedImage)
         val ei = input?.use { ExifInterface(it) } ?: return img
