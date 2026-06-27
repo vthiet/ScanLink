@@ -6,20 +6,25 @@ import android.net.Uri
 import com.example.scanlink.features.document_scanner.data.image.PreviewImageProcessor
 import com.example.scanlink.features.document_scanner.domain.entities.CropRect
 import com.example.scanlink.features.document_scanner.domain.repositories.IPreviewImageRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class PreviewImageRepositoryImpl @Inject constructor() : IPreviewImageRepository {
-    override fun loadBitmap(context: Context, uri: Uri): Bitmap {
-        return PreviewImageProcessor.loadBitmap(context, uri)
+class PreviewImageRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context
+) : IPreviewImageRepository {
+
+    override suspend fun loadImage(uriString: String): Any {
+        return PreviewImageProcessor.loadBitmap(context, Uri.parse(uriString))
     }
 
     override fun transform(
-        bitmap: Bitmap,
+        image: Any,
         rotation: Float,
         flipHorizontal: Boolean,
         flipVertical: Boolean,
         cropCenter: Boolean
-    ): Bitmap {
+    ): Any {
+        val bitmap = image as Bitmap
         return PreviewImageProcessor.transform(
             bitmap = bitmap,
             rotation = rotation,
@@ -29,15 +34,17 @@ class PreviewImageRepositoryImpl @Inject constructor() : IPreviewImageRepository
         )
     }
 
-    override fun saveToPictures(context: Context, bitmap: Bitmap, fileName: String): Uri {
+    override suspend fun saveImage(image: Any, fileName: String): String {
+        val bitmap = image as Bitmap
         return PreviewImageProcessor.saveToPictures(
             context = context,
             bitmap = bitmap,
             fileName = fileName
-        )
+        ).toString()
     }
 
-    override fun cropByRect(bitmap: Bitmap, cropRect: CropRect): Bitmap {
+    override fun cropImage(image: Any, cropRect: CropRect): Any {
+        val bitmap = image as Bitmap
         return PreviewImageProcessor.cropByRect(bitmap, cropRect)
     }
 }
