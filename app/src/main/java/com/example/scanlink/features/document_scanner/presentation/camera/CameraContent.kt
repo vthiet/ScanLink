@@ -21,8 +21,8 @@ fun CameraContent(
     viewModel: CameraViewModel
 ) {
 
-    val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -57,7 +57,7 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    // Gọi onCaptureSuccess với context, uri và lambda điều hướng
+                    // Khôi phục gọi hàm xử lý kèm lambda
                     viewModel.onCaptureSuccess(context, uri) {
                         onPhotoCaptured(uri)
                     }
@@ -66,7 +66,7 @@ fun CameraContent(
             )
         }
 
-        // Lớp phủ hiệu ứng quét
+        // Lớp phủ hiệu ứng quét laser
         if (state.isLoading) {
             ScanningOverlay(
                 bitmap = state.processedBitmap ?: state.originalBitmap,

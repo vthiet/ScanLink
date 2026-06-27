@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.Flow
 interface IDocumentLocalRepository {
     suspend fun saveDocument(document: Document, pages: List<Page>): Result<Unit>
     suspend fun deleteDocument(documentId: String): Result<Unit>
+    suspend fun renameDocument(documentId: String, title: String): Result<Unit>
+    suspend fun duplicateDocument(documentId: String): Result<Document?>
     fun getDocumentsFlow(): Flow<List<Document>>
     suspend fun getDocumentById(documentId: String): Result<Document?>
 }
+
+interface DocumentRepository : IDocumentLocalRepository

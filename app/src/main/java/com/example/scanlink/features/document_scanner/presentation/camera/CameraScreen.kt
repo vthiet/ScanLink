@@ -66,6 +66,8 @@ fun CameraScreen(
                 CameraContent(
                     onClose = onClose,
                     onPhotoCaptured = { uri ->
+                        // onCaptureSuccess đã được xử lý bên trong CameraContent kèm hiệu ứng laser.
+                        // Tại đây ta chỉ thực hiện điều hướng sang trang Preview.
                         onNavigateToPreview(uri)
                     },
                     viewModel = viewModel
@@ -73,7 +75,8 @@ fun CameraScreen(
             }
         }
 
-        if (state.isLoading) {
+        // Chỉ hiển thị loading indicator cho trạng thái khởi tạo camera
+        if (state.isLoading && state.uiState is CameraUiState.Initial) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
