@@ -31,7 +31,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class CameraViewModel @Inject constructor(
     private val transformDocumentUseCase: TransformDocumentUseCase,
     private val applyScanFilterUseCase: ApplyScanFilterUseCase,
-    private val extractTextFromImageUseCase: ExtractTextFromImageUseCase,
     private val createPdfUseCase: CreatePdfUseCase,
     private val documentRepository: com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository,
     private val apiService: com.example.scanlink.core.network.ApiService
@@ -220,16 +219,6 @@ class CameraViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             val filtered = applyScanFilterUseCase(bitmap, filterType)
             _uiState.update {
-                it.copy(selectedFilter = filterType, processedBitmap = filtered as? Bitmap)
-            }
-        }
-    }
-
-    fun onFilterSelected(filterType: ScanFilterType) {
-        val bitmap = _uiState.value.processedBitmap ?: return
-        viewModelScope.launch(Dispatchers.Default) {
-            val filtered = applyScanFilterUseCase(bitmap, filterType)
-            _uiState.update { 
                 it.copy(selectedFilter = filterType, processedBitmap = filtered as? Bitmap)
             }
         }

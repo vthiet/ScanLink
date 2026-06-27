@@ -25,8 +25,8 @@ interface ApiService {
     @POST("api/v1/documents")
     fun uploadDocument(
         @Part file: MultipartBody.Part,
-        @Part("title") title: RequestBody,
-        @Part("extractedText") extractedText: RequestBody? = null
+        @Part title: MultipartBody.Part,
+        @Part extractedText: MultipartBody.Part
     ): Call<BaseResponse<DocumentResponse>>
 
     @GET("api/v1/documents")
