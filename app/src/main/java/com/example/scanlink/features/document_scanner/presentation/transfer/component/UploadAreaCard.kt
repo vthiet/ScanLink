@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun UploadAreaCard() {
+fun UploadAreaCard(
+    onSelectFileClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -56,7 +58,7 @@ fun UploadAreaCard() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { /* Mở file picker */ },
+            onClick = onSelectFileClick,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             ),

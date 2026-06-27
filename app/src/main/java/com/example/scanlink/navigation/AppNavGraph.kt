@@ -19,6 +19,7 @@ import com.example.scanlink.features.document_scanner.presentation.ocr.OcrResult
 import com.example.scanlink.features.document_scanner.presentation.preview.PreviewScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
+import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 
 @Composable
 fun AppNavGraph(
@@ -42,6 +43,14 @@ fun AppNavGraph(
 
         composable(Screen.Transfer.route) {
             TransferScreen()
+        }
+
+        composable("scan") {
+            ScanScreen(
+                onNavigateToDetail = { documentId ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId))
+                }
+            )
         }
 
         composable(Screen.History.route) {
@@ -119,15 +128,17 @@ fun AppNavGraph(
                     // Logic rotate được xử lý trong PreviewViewModel
                 },
                 onExtractText = { filteredUri ->
-                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
-                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
-                        navController.navigate(Screen.OcrResult.route)
+                    sharedCameraViewModel.saveAndUploadDocument(context, filteredUri) { docId ->
+                        navController.navigate(Screen.FileDetail.createRoute(docId)) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
                     }
                 },
                 onDone = { filteredUri ->
-                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
-                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
-                        navController.navigate(Screen.OcrResult.route)
+                    sharedCameraViewModel.saveAndUploadDocument(context, filteredUri) { docId ->
+                        navController.navigate(Screen.FileDetail.createRoute(docId)) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
                     }
                 }
             )

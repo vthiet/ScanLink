@@ -1,5 +1,7 @@
 package com.example.scanlink.features.document_scanner.presentation.transfer
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,9 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferActionSection
 import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadAreaCard
 import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadingFileItem
@@ -23,45 +28,31 @@ import com.example.scanlink.core.ui.components.header.AppHeader
 
 @Composable
 fun TransferContent(
-    paddingValues: PaddingValues = PaddingValues(0.dp)
+    paddingValues: PaddingValues = PaddingValues(0.dp),
+    viewModel: TransferViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.uploadFile(uri)
+        }
+    }
+
+    LaunchedEffect(uiState.actionMessage) {
+        uiState.actionMessage?.let {
+            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show()
+            viewModel.consumeActionMessage()
+        }
+    }
 
     var selectedTab by remember { mutableStateOf(TransferTab.Upload) }
 
-    val uploadingFiles = remember {
-
-        listOf(
-            RecentFile(
-                id = "1",
-                name = "Tên File 1.PDF",
-                sizeLabel = "1.8 MB",
-                type = FileType.PDF,
-                createdAt = "16/04/2028",
-                uploadProgress = 0.65f,
-                statusText = "Đang tải",
-                statusColor = Color(0xFF00CFA4)
-            )
-        )
-    }
-
-    val recentFiles = remember {
-        listOf(
-            RecentFile(
-                id = "2",
-                name = "Tên File 1.docx",
-                sizeLabel = "820 KB",
-                type = FileType.DOCX,
-                createdAt = "18/04/2028"
-            ),
-            RecentFile(
-                id = "3",
-                name = "Tên File 2.PDF",
-                sizeLabel = "3.1 MB",
-                type = FileType.PDF,
-                createdAt = "13/04/2028"
-            )
-        )
-    }
+    val uploadingFiles = uiState.uploadingFiles
+    val recentFiles = uiState.recentFiles
 
     Column(
         modifier = Modifier
@@ -86,7 +77,7 @@ fun TransferContent(
 
             // Khu vực Upload
             item {
-                UploadAreaCard()
+                UploadAreaCard(onSelectFileClick = { launcher.launch("*/*") })
             }
 
             // Đang tải lên

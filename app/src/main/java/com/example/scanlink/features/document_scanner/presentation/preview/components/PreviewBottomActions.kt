@@ -67,8 +67,6 @@ fun PreviewBottomActions(
                     MaterialTheme.colorScheme.onSurface,
                 onClick = onCrop
             )
-            PreviewActionItem(Icons.Default.TextFields, "Extract Text", onClick = onExtractText)
-
             IconButton(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
