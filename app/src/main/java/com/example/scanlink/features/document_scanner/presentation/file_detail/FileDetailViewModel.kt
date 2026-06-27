@@ -6,7 +6,6 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scanlink.core.network.ApiService
 import com.example.scanlink.features.document_scanner.domain.entities.Document
 import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,11 +20,17 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
+import android.graphics.BitmapFactory
+import android.net.Uri
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @HiltViewModel
 class FileDetailViewModel @Inject constructor(
     private val documentRepository: DocumentRepository,
-    private val apiService: ApiService,
+    private val apiService: com.example.scanlink.core.network.ApiService,
+    private val extractTextFromImageUseCase: com.example.scanlink.features.document_scanner.domain.usecases.ExtractTextFromImageUseCase,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -83,7 +88,7 @@ class FileDetailViewModel @Inject constructor(
                     isLoading = false,
                     document = document,
                     renameValue = document.title,
-                    errorMessage = result.exceptionOrNull()?.localizedMessage
+                    errorMessage = if (document == null) result.exceptionOrNull()?.localizedMessage else null
                 )
             }
         }
@@ -91,8 +96,7 @@ class FileDetailViewModel @Inject constructor(
 
     private fun parseIsoDate(isoStr: String): Long {
         return try {
-            val format =
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
             format.parse(isoStr)?.time ?: System.currentTimeMillis()
         } catch (_: Exception) {
             System.currentTimeMillis()
@@ -166,6 +170,61 @@ class FileDetailViewModel @Inject constructor(
             documentRepository.duplicateDocument(document.id)
             _uiState.update { it.copy(actionMessage = "Duplicated") }
         }
+    }
+
+    // ── SHARING DIALOG LOGIC ──────────────────────────────────────────────────
+    fun showShareOptions() {
+        _uiState.update { it.copy(isShareOptionsVisible = true) }
+    }
+
+    fun hideShareOptions() {
+        _uiState.update { it.copy(isShareOptionsVisible = false) }
+    }
+
+    fun showPublicLinkDialog() {
+        _uiState.update {
+            it.copy(
+                isShareOptionsVisible = false,
+                isPublicLinkDialogVisible = true,
+                sharePasswordValue = "",
+                shareExpireDaysValue = ""
+            )
+        }
+    }
+
+    fun hidePublicLinkDialog() {
+        _uiState.update { it.copy(isPublicLinkDialogVisible = false) }
+    }
+
+    fun showPrivateAccessDialog() {
+        _uiState.update {
+            it.copy(
+                isShareOptionsVisible = false,
+                isPrivateAccessDialogVisible = true,
+                shareEmailValue = "",
+                shareRoleValue = "VIEWER"
+            )
+        }
+    }
+
+    fun hidePrivateAccessDialog() {
+        _uiState.update { it.copy(isPrivateAccessDialogVisible = false) }
+    }
+
+    fun onSharePasswordChange(value: String) {
+        _uiState.update { it.copy(sharePasswordValue = value) }
+    }
+
+    fun onShareExpireDaysChange(value: String) {
+        _uiState.update { it.copy(shareExpireDaysValue = value) }
+    }
+
+    fun onShareEmailChange(value: String) {
+        _uiState.update { it.copy(shareEmailValue = value) }
+    }
+
+    fun onShareRoleChange(value: String) {
+        _uiState.update { it.copy(shareRoleValue = value) }
     }
 
     fun confirmCreatePublicLink() {
@@ -246,7 +305,79 @@ class FileDetailViewModel @Inject constructor(
         }
     }
 
+    fun hidePublicLinkSuccess() {
+        _uiState.update { it.copy(isPublicLinkSuccessVisible = false, generatedShareLink = null) }
+    }
 
+    fun extractTextFromDocument() {
+        val document = _uiState.value.document ?: return
+        val imagePath = document.thumbnailPath ?: document.pages.firstOrNull()?.imagePath
+        if (imagePath.isNullOrBlank()) {
+            _uiState.update { it.copy(actionMessage = "Không tìm thấy đường dẫn ảnh để quét OCR.") }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val uri = Uri.parse(imagePath)
+                val bitmap = try {
+                    appContext.contentResolver.openInputStream(uri).use { inputStream ->
+                        BitmapFactory.decodeStream(inputStream)
+                    }
+                } catch (_: Exception) {
+                    val file = File(imagePath)
+                    if (file.exists()) {
+                        BitmapFactory.decodeFile(file.absolutePath)
+                    } else null
+                }
+
+                if (bitmap == null) {
+                    throw Exception("Không thể tải ảnh tài liệu")
+                }
+
+                // Chạy OCR
+                val extractedText = extractTextFromImageUseCase(bitmap)
+
+                // Cập nhật local DB
+                val updatedDoc = document.copy(extractedText = extractedText)
+                documentRepository.saveDocument(updatedDoc, document.pages)
+
+                // Upload văn bản trích xuất lên server nếu tệp đã được đồng bộ
+                try {
+                    val file = document.pdfPath?.let(::File)?.takeIf { it.exists() }
+                    if (file != null) {
+                        val requestFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
+                        val filePart = okhttp3.MultipartBody.Part.createFormData("file", file.name, requestFile)
+                        val cleanTitle = file.name.substringBeforeLast(".")
+                        val titlePart = okhttp3.MultipartBody.Part.createFormData("title", cleanTitle)
+                        val textPart = okhttp3.MultipartBody.Part.createFormData("extractedText", extractedText)
+
+                        apiService.uploadDocument(filePart, titlePart, textPart).execute()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        document = updatedDoc,
+                        actionMessage = "Trích xuất văn bản (OCR) thành công!"
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        actionMessage = "OCR thất bại: ${e.localizedMessage ?: "Lỗi không xác định"}"
+                    )
+                }
+            }
+        }
+    }
 
     fun shareDocument(context: Context) {
         val document = _uiState.value.document ?: return

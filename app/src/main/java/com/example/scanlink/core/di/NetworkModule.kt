@@ -21,7 +21,14 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
+        val logging = HttpLoggingInterceptor { message ->
+            val isBinary = message.startsWith("%PDF") ||
+                    message.contains("stream") ||
+                    (message.length > 1000 && !message.contains("{") && !message.contains("["))
+            if (!isBinary) {
+                android.util.Log.d("OkHttp", message)
+            }
+        }.apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         return OkHttpClient.Builder()
@@ -35,7 +42,6 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)

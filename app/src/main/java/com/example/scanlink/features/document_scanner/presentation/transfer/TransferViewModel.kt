@@ -12,6 +12,8 @@ import com.example.scanlink.core.ui.model.RecentFile
 import com.example.scanlink.features.document_scanner.domain.entities.Document
 import com.example.scanlink.features.document_scanner.domain.entities.Page
 import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -111,42 +113,75 @@ class TransferViewModel @Inject constructor(
                         }
                     }
 
-                    val requestFile = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
-                    val filePart = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
-                    val titlePart = tempFile.name.toRequestBody("text/plain".toMediaTypeOrNull())
+                    // Nếu là file ảnh, tiến hành nén trước khi upload
+                    var finalUploadFile = tempFile
+                    if (mimeType.startsWith("image/", ignoreCase = true)) {
+                        val bitmap = BitmapFactory.decodeFile(tempFile.absolutePath)
+                        if (bitmap != null) {
+                            val maxDim = 800
+                            val w = bitmap.width
+                            val h = bitmap.height
+                            val scaled = if (w > maxDim || h > maxDim) {
+                                val ratio = w.toFloat() / h.toFloat()
+                                val newW = if (ratio > 1) maxDim else (maxDim * ratio).toInt()
+                                val newH = if (ratio > 1) (maxDim / ratio).toInt() else maxDim
+                                Bitmap.createScaledBitmap(bitmap, newW, newH, true)
+                            } else {
+                                bitmap
+                            }
 
-                    val response = apiService.uploadDocument(filePart, titlePart).execute()
+                            val compressedName = "compressed_${fileName.substringBeforeLast(".")}.jpg"
+                            val compressedFile = File(appContext.cacheDir, compressedName)
+                            compressedFile.outputStream().use { outStream ->
+                                scaled.compress(Bitmap.CompressFormat.JPEG, 50, outStream)
+                            }
+                            finalUploadFile = compressedFile
+                        }
+                    }
+
+                    android.util.Log.d("ScanLink", "Uploading transfer file. Size: ${finalUploadFile.length()} bytes")
+                    val requestFile = finalUploadFile.asRequestBody(mimeType.toMediaTypeOrNull())
+                    val filePart = MultipartBody.Part.createFormData("file", finalUploadFile.name, requestFile)
+                    val cleanTitle = finalUploadFile.name.substringBeforeLast(".")
+                    val titlePart = MultipartBody.Part.createFormData("title", cleanTitle)
+                    val textPart = MultipartBody.Part.createFormData("extractedText", "")
+
+                    val response = apiService.uploadDocument(filePart, titlePart, textPart).execute()
 
                     if (response.isSuccessful && response.body()?.data != null) {
-                        val docResponse = response.body()!!.data!!
+                        val serverDoc = response.body()!!.data!!
+
+                        // Lưu vào local database
                         val now = System.currentTimeMillis()
                         val newDoc = Document(
-                            id = docResponse.id,
-                            ownerUid = docResponse.ownerUid,
-                            title = docResponse.title,
-                            storageUrl = docResponse.storageUrl,
-                            fileSize = docResponse.fileSize,
-                            extractedText = docResponse.extractedText,
-                            pdfPath = tempFile.absolutePath,
+                            id = UUID.randomUUID().toString(),
+                            ownerUid = null,
+                            title = finalUploadFile.name,
+                            storageUrl = serverDoc.storageUrl,
+                            fileSize = finalUploadFile.length(),
+                            extractedText = null,
+                            pdfPath = finalUploadFile.absolutePath,
                             createdAt = now,
                             updatedAt = now,
                             isSynced = true,
                             pageCount = 1,
                             mimeType = mimeType,
-                            thumbnailPath = null,
+                            thumbnailPath = finalUploadFile.absolutePath,
                             lastModified = now
                         )
                         val page = Page(
                             id = UUID.randomUUID().toString(),
-                            documentId = docResponse.id,
+                            documentId = newDoc.id,
                             pageNumber = 1,
-                            imagePath = tempFile.absolutePath,
-                            ocrText = docResponse.extractedText,
+                            imagePath = finalUploadFile.absolutePath,
+                            ocrText = null,
                             createdAt = now
                         )
                         documentRepository.saveDocument(newDoc, listOf(page))
                         true
                     } else {
+                        val errorBody = response.errorBody()?.string()
+                        android.util.Log.e("ScanLink", "Transfer upload failed. Code: ${response.code()}, Error: $errorBody")
                         false
                     }
                 } catch (e: Exception) {

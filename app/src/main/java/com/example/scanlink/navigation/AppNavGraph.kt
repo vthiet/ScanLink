@@ -45,7 +45,6 @@ fun AppNavGraph(
             TransferScreen()
         }
 
-
         composable("scan") {
             ScanScreen(
                 onNavigateToDetail = { documentId ->
@@ -129,15 +128,17 @@ fun AppNavGraph(
                     // Logic rotate được xử lý trong PreviewViewModel
                 },
                 onExtractText = { filteredUri ->
-                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
-                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
-                        navController.navigate(Screen.OcrResult.route)
+                    sharedCameraViewModel.saveAndUploadDocument(context, filteredUri) { docId ->
+                        navController.navigate(Screen.FileDetail.createRoute(docId)) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
                     }
                 },
                 onDone = { filteredUri ->
-                    // Thực hiện OCR và chỉ navigate sau khi hoàn tất
-                    sharedCameraViewModel.processFilteredImageForOcr(context, filteredUri) {
-                        navController.navigate(Screen.OcrResult.route)
+                    sharedCameraViewModel.saveAndUploadDocument(context, filteredUri) { docId ->
+                        navController.navigate(Screen.FileDetail.createRoute(docId)) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
                     }
                 }
             )
