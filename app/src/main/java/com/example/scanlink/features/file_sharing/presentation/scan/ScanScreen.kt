@@ -11,21 +11,45 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.material3.Text
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(){
+fun ScanScreen(
+    onNavigateToDetail: (String) -> Unit = {},
+    viewModel: ScanViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var manualToken by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.successDocumentId) {
+        uiState.successDocumentId?.let { docId ->
+            onNavigateToDetail(docId)
+            viewModel.consumeSuccessState()
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { error ->
+            android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -52,13 +76,12 @@ fun ScanScreen(){
             .background(Color.Black)
     ) {
         if (hasCameraPermission) {
-            // Camera full màn hình
             CameraPreview(modifier = Modifier.fillMaxSize())
 
             // Khung scan ở giữa
             Box(
                 modifier = Modifier
-                    .size(260.dp)
+                    .size(240.dp)
                     .align(Alignment.Center)
                     .border(2.dp, Color(0xFF00C853))
             )
@@ -71,8 +94,47 @@ fun ScanScreen(){
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 160.dp)
+                    .offset(y = 140.dp)
             )
+
+            // Panel nhập tay ở dưới
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(Color.Black.copy(alpha = 0.8f), shape = RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedTextField(
+                    value = manualToken,
+                    onValueChange = { manualToken = it },
+                    singleLine = true,
+                    label = { Text("Hoặc nhập Hash Token / Share URL", color = Color.LightGray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color(0xFF00C853),
+                        focusedBorderColor = Color(0xFF00C853),
+                        unfocusedBorderColor = Color.Gray
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        if (manualToken.isNotBlank()) {
+                            viewModel.processScannedToken(manualToken)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text("Tải file và Mở", color = Color.White, fontSize = 15.sp)
+                }
+            }
         } else {
             Text(
                 text = "Cần cấp quyền Camera\nđể sử dụng tính năng này",
@@ -82,8 +144,50 @@ fun ScanScreen(){
                 modifier = Modifier.align(Alignment.Center)
             )
         }
+
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFF00C853))
+            }
+        }
+
+        if (uiState.isPasswordPromptVisible) {
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissPasswordPrompt() },
+                title = { Text("Tài liệu được bảo vệ") },
+                text = {
+                    Column {
+                        Text("Vui lòng nhập mật khẩu được cung cấp để tải tài liệu này:")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = uiState.passwordValue,
+                            onValueChange = viewModel::onPasswordChange,
+                            singleLine = true,
+                            label = { Text("Mật khẩu") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = viewModel::confirmPassword) {
+                        Text("Xác nhận", color = Color(0xFF00C853))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = viewModel::dismissPasswordPrompt) {
+                        Text("Hủy")
+                    }
+                }
+            )
+        }
     }
 }
+
 @Composable
 fun CameraPreview(modifier: Modifier = Modifier) {
     val context = LocalContext.current
