@@ -6,15 +6,18 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.scanlink.core.network.ApiService
 import com.example.scanlink.features.document_scanner.domain.entities.Document
 import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -22,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FileDetailViewModel @Inject constructor(
     private val documentRepository: DocumentRepository,
+    private val apiService: ApiService,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -39,7 +43,41 @@ class FileDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val result = documentRepository.getDocumentById(documentId)
-            val document = result.getOrNull() ?: fakeFileDetailDocument(documentId)
+            var document = result.getOrNull()
+
+            if (document == null) {
+                try {
+                    val apiResponse = withContext(Dispatchers.IO) {
+                        apiService.getDocumentDetail(documentId).execute()
+                    }
+                    if (apiResponse.isSuccessful) {
+                        val docResponse = apiResponse.body()?.data
+                        if (docResponse != null) {
+                            document = Document(
+                                id = docResponse.id,
+                                ownerUid = docResponse.ownerUid,
+                                title = docResponse.title,
+                                storageUrl = docResponse.storageUrl,
+                                fileSize = docResponse.fileSize,
+                                extractedText = docResponse.extractedText,
+                                pdfPath = null,
+                                createdAt = parseIsoDate(docResponse.createdAt),
+                                updatedAt = parseIsoDate(docResponse.updatedAt),
+                                isSynced = true,
+                                pageCount = 1,
+                                mimeType = "application/pdf"
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            if (document == null) {
+                document = fakeFileDetailDocument(documentId)
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -48,6 +86,16 @@ class FileDetailViewModel @Inject constructor(
                     errorMessage = result.exceptionOrNull()?.localizedMessage
                 )
             }
+        }
+    }
+
+    private fun parseIsoDate(isoStr: String): Long {
+        return try {
+            val format =
+                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            format.parse(isoStr)?.time ?: System.currentTimeMillis()
+        } catch (_: Exception) {
+            System.currentTimeMillis()
         }
     }
 
@@ -103,6 +151,9 @@ class FileDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteLocalFile(document)
             documentRepository.deleteDocument(document.id)
+            withContext(Dispatchers.IO) {
+                runCatching { apiService.deleteDocument(document.id).execute() }
+            }
             _uiState.update { it.copy(isDeleteDialogVisible = false, actionMessage = "Deleted") }
             onDeleted()
         }
@@ -116,6 +167,86 @@ class FileDetailViewModel @Inject constructor(
             _uiState.update { it.copy(actionMessage = "Duplicated") }
         }
     }
+
+    fun confirmCreatePublicLink() {
+        val document = _uiState.value.document ?: return
+        val password = _uiState.value.sharePasswordValue.takeIf { it.isNotBlank() }
+        val expireDays = _uiState.value.shareExpireDaysValue.toIntOrNull()
+
+        _uiState.update { it.copy(isSharingLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val request = com.example.scanlink.core.network.models.CreatePublicShareRequest(
+                    documentId = document.id,
+                    password = password,
+                    expireInDays = expireDays
+                )
+                val response = apiService.createPublicShareLink(request).execute()
+                if (response.isSuccessful) {
+                    val shareLink = response.body()?.data?.shareUrl ?: "https://scanlink.com/share/${response.body()?.data?.hashToken}"
+                    _uiState.update {
+                        it.copy(
+                            isSharingLoading = false,
+                            generatedShareLink = shareLink,
+                            isPublicLinkDialogVisible = false,
+                            isPublicLinkSuccessVisible = true
+                        )
+                    }
+                } else {
+                    throw Exception("Lỗi từ server: ${response.code()}")
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isSharingLoading = false,
+                        actionMessage = "Tạo link thất bại: ${error.localizedMessage}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun confirmGrantPrivatePermission() {
+        val document = _uiState.value.document ?: return
+        val email = _uiState.value.shareEmailValue.trim()
+        val role = _uiState.value.shareRoleValue
+
+        if (email.isBlank()) return
+
+        _uiState.update { it.copy(isSharingLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val request = com.example.scanlink.core.network.models.GrantPrivatePermissionRequest(
+                    documentId = document.id,
+                    shareToEmail = email,
+                    role = role
+                )
+                val response = apiService.grantPrivatePermission(request).execute()
+                if (response.isSuccessful) {
+                    _uiState.update {
+                        it.copy(
+                            isSharingLoading = false,
+                            isPrivateAccessDialogVisible = false,
+                            actionMessage = "Đã cấp quyền cho $email thành công!"
+                        )
+                    }
+                } else {
+                    throw Exception("Lỗi từ server: ${response.code()}")
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isSharingLoading = false,
+                        actionMessage = "Cấp quyền thất bại: ${error.localizedMessage}"
+                    )
+                }
+            }
+        }
+    }
+
+
 
     fun shareDocument(context: Context) {
         val document = _uiState.value.document ?: return

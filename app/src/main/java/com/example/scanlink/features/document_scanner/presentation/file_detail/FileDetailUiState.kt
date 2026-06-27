@@ -10,7 +10,19 @@ data class FileDetailUiState(
     val isRenameDialogVisible: Boolean = false,
     val isDeleteDialogVisible: Boolean = false,
     val renameValue: String = "",
-    val actionMessage: String? = null
+    val actionMessage: String? = null,
+
+    // Sharing Dialog/State variables
+    val isShareOptionsVisible: Boolean = false,
+    val isPublicLinkDialogVisible: Boolean = false,
+    val isPrivateAccessDialogVisible: Boolean = false,
+    val sharePasswordValue: String = "",
+    val shareExpireDaysValue: String = "",
+    val shareEmailValue: String = "",
+    val shareRoleValue: String = "VIEWER",
+    val generatedShareLink: String? = null,
+    val isPublicLinkSuccessVisible: Boolean = false,
+    val isSharingLoading: Boolean = false
 ) {
     val hasOcr: Boolean
         get() = !document?.extractedText.isNullOrBlank()

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
@@ -68,9 +69,23 @@ fun FileDetailContent(
     onConvertClick: () -> Unit,
     onPrintClick: () -> Unit,
     onCopyOcrClick: (Context) -> Unit,
-    onShareClick: (Context) -> Unit,
+    onShareClick: () -> Unit,
+    onDismissShareOptions: () -> Unit,
+    onSystemShareClick: (Context) -> Unit,
+    onPublicLinkClick: () -> Unit,
+    onPrivateAccessClick: () -> Unit,
+    onDismissPublicLink: () -> Unit,
+    onDismissPrivateAccess: () -> Unit,
+    onSharePasswordChange: (String) -> Unit,
+    onShareExpireDaysChange: (String) -> Unit,
+    onShareEmailChange: (String) -> Unit,
+    onShareRoleChange: (String) -> Unit,
+    onConfirmPublicLink: () -> Unit,
+    onConfirmPrivateAccess: () -> Unit,
+    onDismissPublicLinkSuccess: () -> Unit,
     onExportPdfClick: (Context) -> Unit,
     onExportImageClick: (Context) -> Unit,
+    onExtractTextClick: () -> Unit,
     onConsumeActionMessage: () -> Unit
 ) {
     val context = LocalContext.current
@@ -124,7 +139,15 @@ fun FileDetailContent(
                             leadingIcon = { Icon(Icons.Default.Share, null) },
                             onClick = {
                                 isMenuExpanded = false
-                                onShareClick(context)
+                                onShareClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Extract Text (OCR)") },
+                            leadingIcon = { Icon(Icons.Default.Article, null) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onExtractTextClick()
                             }
                         )
                         DropdownMenuItem(
@@ -170,7 +193,7 @@ fun FileDetailContent(
         bottomBar = {
             if (uiState.document != null) {
                 BottomActionBar(
-                    onShareClick = { onShareClick(context) },
+                    onShareClick = onShareClick,
                     onSaveToDeviceClick = {
                         scope.launch { snackbarHostState.showSnackbar("Saved to device") }
                     }
@@ -204,12 +227,13 @@ fun FileDetailContent(
                                 scope.launch {
                                     snackbarHostState.showSnackbar(uiState.document.extractedText.orEmpty())
                                 }
-                            }
+                            },
+                            onExtractTextClick = onExtractTextClick
                         )
                     }
                     item {
                         QuickActionGrid(
-                            onShareClick = { onShareClick(context) },
+                            onShareClick = onShareClick,
                             onRenameClick = onRenameClick,
                             onDuplicateClick = onDuplicateClick,
                             onConvertClick = onConvertClick,
@@ -236,6 +260,54 @@ fun FileDetailContent(
         DeleteConfirmationDialog(
             onDismiss = onDismissDelete,
             onConfirm = onConfirmDelete
+        )
+    }
+
+    if (uiState.isShareOptionsVisible) {
+        com.example.scanlink.features.document_scanner.presentation.file_detail.components.ShareOptionsDialog(
+            onDismiss = onDismissShareOptions,
+            onSystemShare = {
+                onDismissShareOptions()
+                onSystemShareClick(context)
+            },
+            onPublicLink = onPublicLinkClick,
+            onPrivateAccess = onPrivateAccessClick
+        )
+    }
+
+    if (uiState.isPublicLinkDialogVisible) {
+        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkDialog(
+            passwordValue = uiState.sharePasswordValue,
+            onPasswordChange = onSharePasswordChange,
+            expireDaysValue = uiState.shareExpireDaysValue,
+            onExpireDaysChange = onShareExpireDaysChange,
+            isLoading = uiState.isSharingLoading,
+            onDismiss = onDismissPublicLink,
+            onConfirm = onConfirmPublicLink
+        )
+    }
+
+    if (uiState.isPrivateAccessDialogVisible) {
+        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PrivateAccessDialog(
+            emailValue = uiState.shareEmailValue,
+            onEmailChange = onShareEmailChange,
+            roleValue = uiState.shareRoleValue,
+            onRoleChange = onShareRoleChange,
+            isLoading = uiState.isSharingLoading,
+            onDismiss = onDismissPrivateAccess,
+            onConfirm = onConfirmPrivateAccess
+        )
+    }
+
+    if (uiState.isPublicLinkSuccessVisible && uiState.generatedShareLink != null) {
+        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkSuccessDialog(
+            shareLink = uiState.generatedShareLink,
+            onDismiss = onDismissPublicLinkSuccess,
+            onCopy = {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Share Link", uiState.generatedShareLink))
+                onDismissPublicLinkSuccess()
+            }
         )
     }
 }

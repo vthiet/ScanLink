@@ -36,6 +36,7 @@ fun OcrPreviewCard(
     onCopyClick: () -> Unit,
     onEditClick: () -> Unit,
     onViewAllClick: () -> Unit,
+    onExtractTextClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     ElevatedCard(
@@ -52,7 +53,7 @@ fun OcrPreviewCard(
                 fontWeight = FontWeight.SemiBold
             )
             if (text.isNullOrBlank()) {
-                EmptyOcrState()
+                EmptyOcrState(onExtractTextClick = onExtractTextClick)
             } else {
                 Text(
                     text = text,
@@ -82,7 +83,9 @@ fun OcrPreviewCard(
 }
 
 @Composable
-private fun EmptyOcrState() {
+private fun EmptyOcrState(
+    onExtractTextClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,5 +104,14 @@ private fun EmptyOcrState() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium
         )
+        Spacer(Modifier.height(12.dp))
+        FilledTonalButton(
+            onClick = onExtractTextClick,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Icon(Icons.Default.Article, null, Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Extract Text (OCR)")
+        }
     }
 }
