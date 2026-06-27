@@ -25,7 +25,7 @@ fun PreviewScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(imageUri) {
-        viewModel.setImageUri(context, imageUri)
+        viewModel.setImageUri(imageUri)
     }
 
     LaunchedEffect(state.errorMessage) {
@@ -48,15 +48,18 @@ fun PreviewScreen(
         },
         onCropRectChange = viewModel::updateCropRect,
         onApplyCrop = {
-            viewModel.applyCrop(context)
+            // applyCrop() không còn nhận tham số context
+            viewModel.applyCrop()
         },
         onExtractText = {
-            viewModel.saveImage(context) { savedUri ->
+            // saveImage() nhận callback trực tiếp, không nhận context
+            viewModel.saveImage { savedUri ->
                 onExtractText(savedUri)
             }
         },
         onDone = {
-            viewModel.saveImage(context) { savedUri ->
+            // saveImage() nhận callback trực tiếp, không nhận context
+            viewModel.saveImage { savedUri ->
                 onDone(savedUri)
             }
         },
