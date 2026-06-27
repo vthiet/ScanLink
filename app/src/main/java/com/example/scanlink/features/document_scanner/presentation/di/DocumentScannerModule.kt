@@ -1,4 +1,4 @@
-package com.example.scanlink.core.di
+package com.example.scanlink.features.document_scanner.presentation.di
 
 import com.example.scanlink.features.document_scanner.data.repositories.PreviewImageRepositoryImpl
 import com.example.scanlink.features.document_scanner.data.repositories.ScanProcessingRepositoryImpl

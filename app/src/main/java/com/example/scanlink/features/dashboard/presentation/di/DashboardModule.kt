@@ -1,4 +1,4 @@
-package com.example.scanlink.core.di
+package com.example.scanlink.features.dashboard.presentation.di
 
 import com.example.scanlink.features.dashboard.data.repositories.DashboardPreferencesRepositoryImpl
 import com.example.scanlink.features.dashboard.domain.repositories.IDashboardPreferencesRepository
