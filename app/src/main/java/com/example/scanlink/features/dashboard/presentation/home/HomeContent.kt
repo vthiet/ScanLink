@@ -3,18 +3,30 @@ package com.example.scanlink.features.dashboard.presentation.home
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.scanlink.R
 import com.example.scanlink.core.ui.components.card.RecentFileItem
 import com.example.scanlink.core.ui.components.header.AppHeader
 import com.example.scanlink.core.ui.model.FileType
@@ -23,15 +35,13 @@ import com.example.scanlink.core.ui.model.home.QuickAction
 import com.example.scanlink.features.dashboard.presentation.home.components.QuickActionSection
 import com.example.scanlink.features.dashboard.presentation.home.components.RecentSection
 
-
 @Composable
 fun HomeContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onFileClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-    
-    // Launcher để chọn nhiều ảnh từ thư viện
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
@@ -40,49 +50,8 @@ fun HomeContent(
         }
     }
 
-    val quickActions = remember {
-        listOf(
-            QuickAction(title = "Smart Scan", iconRes = R.drawable.scans_img, iconSize = 33),
-            QuickAction(title = "ID Cards", iconRes = R.drawable.id_card, iconSize = 40),
-            QuickAction(title = "PDF Tools", iconRes = R.drawable.pdf, iconSize = 25),
-            QuickAction(title = "Import IMG", iconRes = R.drawable.import_img, iconSize = 31),
-            QuickAction(title = "Translate", iconRes = R.drawable.translate, iconSize = 33),
-            QuickAction(title = "ALL", iconRes = R.drawable.all_item, iconSize = 27)
-        )
-    }
-
-    val documents = remember {
-        listOf(
-            RecentFile(
-                id = "1",
-                name = "Tên file 1.docx",
-                sizeLabel = "820 KB",
-                type = FileType.DOCX,
-                createdAt = "2026/04/16"
-            ),
-            RecentFile(
-                id = "2",
-                name = "Tên file 1.PDF",
-                sizeLabel = "1.8 MB",
-                type = FileType.PDF,
-                createdAt = "2026/04/16"
-            ),
-            RecentFile(
-                id = "3",
-                name = "Tên file 2.PDF",
-                sizeLabel = "3.1 MB",
-                type = FileType.PDF,
-                createdAt = "2026/04/16"
-            ),
-            RecentFile(
-                id = "4",
-                name = "Tên file 3.PDF",
-                sizeLabel = "2.4 MB",
-                type = FileType.PDF,
-                createdAt = "2026/04/16"
-            )
-        )
-    }
+    val quickActions = remember { homeQuickActions }
+    val documents = remember { sampleRecentFiles }
 
     Column(
         modifier = Modifier
@@ -90,7 +59,6 @@ fun HomeContent(
             .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
-
         AppHeader(showSearchBar = true)
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -99,10 +67,7 @@ fun HomeContent(
             actions = quickActions,
             onActionClick = { action ->
                 when (action.title) {
-                    "Import IMG" -> {
-                        launcher.launch("image/*")
-                    }
-                    // Các action khác xử lý sau
+                    HomeAction.ImportImage.title -> launcher.launch("image/*")
                 }
             }
         )
@@ -121,16 +86,91 @@ fun HomeContent(
                     )
                 )
         ) {
-
             RecentSection()
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(documents) { file ->
-                    RecentFileItem(file = file)
+                    RecentFileItem(
+                        file = file,
+                        onClick = { onFileClick(file.id) }
+                    )
                 }
             }
         }
     }
 }
+
+private enum class HomeAction(val title: String) {
+    SmartScan("Smart Scan"),
+    IdCards("ID Cards"),
+    PdfTools("PDF Tools"),
+    ImportImage("Import IMG"),
+    Translate("Translate"),
+    AllTools("All Tools")
+}
+
+private val homeQuickActions = listOf(
+    QuickAction(
+        title = HomeAction.SmartScan.title,
+        icon = Icons.Default.Description,
+        description = "Scan document"
+    ),
+    QuickAction(
+        title = HomeAction.IdCards.title,
+        icon = Icons.Default.Badge,
+        description = "ID capture"
+    ),
+    QuickAction(
+        title = HomeAction.PdfTools.title,
+        icon = Icons.Default.PictureAsPdf,
+        description = "PDF toolkit"
+    ),
+    QuickAction(
+        title = HomeAction.ImportImage.title,
+        icon = Icons.Default.Image,
+        description = "Import photos"
+    ),
+    QuickAction(
+        title = HomeAction.Translate.title,
+        icon = Icons.Default.Translate,
+        description = "Translate text"
+    ),
+    QuickAction(
+        title = HomeAction.AllTools.title,
+        icon = Icons.Default.GridView,
+        description = "More actions"
+    )
+)
+
+private val sampleRecentFiles = listOf(
+    RecentFile(
+        id = "1",
+        name = "ScanLink_Project_Brief.docx",
+        sizeLabel = "820 KB",
+        type = FileType.DOCX,
+        createdAt = "2026/04/16"
+    ),
+    RecentFile(
+        id = "2",
+        name = "Mobile_Final_Report.pdf",
+        sizeLabel = "1.8 MB",
+        type = FileType.PDF,
+        createdAt = "2026/04/16"
+    ),
+    RecentFile(
+        id = "3",
+        name = "Contract_Scan.pdf",
+        sizeLabel = "3.1 MB",
+        type = FileType.PDF,
+        createdAt = "2026/04/16"
+    ),
+    RecentFile(
+        id = "4",
+        name = "Receipt_Archive.pdf",
+        sizeLabel = "2.4 MB",
+        type = FileType.PDF,
+        createdAt = "2026/04/16"
+    )
+)

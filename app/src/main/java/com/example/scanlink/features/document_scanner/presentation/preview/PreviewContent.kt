@@ -12,8 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraUiState
-import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
 import com.example.scanlink.features.document_scanner.presentation.camera.components.ScanningOverlay
 import com.example.scanlink.features.document_scanner.presentation.ocr.components.FilterSelector
 import com.example.scanlink.features.document_scanner.presentation.preview.components.PreviewBottomActions

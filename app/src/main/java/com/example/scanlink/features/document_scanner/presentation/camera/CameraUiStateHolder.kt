@@ -1,6 +1,7 @@
 package com.example.scanlink.features.document_scanner.presentation.camera
 
 import android.graphics.Bitmap
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 
 data class CameraUiStateHolder(
     val selectedMode: String = "Quét",

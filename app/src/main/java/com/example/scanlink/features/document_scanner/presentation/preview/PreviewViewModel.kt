@@ -5,9 +5,13 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
-import com.example.scanlink.features.document_scanner.data.image.PreviewImageProcessor
-import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
+import com.example.scanlink.features.document_scanner.domain.usecases.ApplyScanFilterUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.CropPreviewImageUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.LoadPreviewBitmapUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.SavePreviewImageUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.TransformPreviewImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +24,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PreviewViewModel @Inject constructor(
-    private val scanEngine: ScanEngine
+    private val loadPreviewBitmapUseCase: LoadPreviewBitmapUseCase,
+    private val applyScanFilterUseCase: ApplyScanFilterUseCase,
+    private val transformPreviewImageUseCase: TransformPreviewImageUseCase,
+    private val savePreviewImageUseCase: SavePreviewImageUseCase,
+    private val cropPreviewImageUseCase: CropPreviewImageUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PreviewUiState())
@@ -35,7 +43,7 @@ class PreviewViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                val bitmap = PreviewImageProcessor.loadBitmap(
+                val bitmap = loadPreviewBitmapUseCase(
                     context = context,
                     uri = Uri.parse(uri)
                 )
@@ -55,7 +63,7 @@ class PreviewViewModel @Inject constructor(
     private fun applyFilterInternal(filterType: ScanFilterType) {
         val bitmap = originalBitmap ?: return
         viewModelScope.launch(Dispatchers.Default) {
-            val filtered = scanEngine.applyFilters(bitmap, filterType)
+            val filtered = applyScanFilterUseCase(bitmap, filterType)
             _uiState.update { it.copy(previewBitmap = filtered) }
         }
     }
@@ -83,7 +91,7 @@ class PreviewViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             runCatching {
-                val transformed = PreviewImageProcessor.transform(
+                val transformed = transformPreviewImageUseCase(
                     bitmap = bitmapToSave,
                     rotation = state.rotation,
                     flipHorizontal = state.flipHorizontal,
@@ -91,7 +99,7 @@ class PreviewViewModel @Inject constructor(
                     cropCenter = false
                 )
 
-                val uri = PreviewImageProcessor.saveToPictures(
+                val uri = savePreviewImageUseCase(
                     context = context,
                     bitmap = transformed,
                     fileName = "ScanLink_Filtered_${System.currentTimeMillis()}"
@@ -137,13 +145,13 @@ class PreviewViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             runCatching {
-                val cropped = PreviewImageProcessor.cropByRect(
+                val cropped = cropPreviewImageUseCase(
                     bitmap = bitmapToCrop,
                     cropRect = state.cropRect
                 )
                 originalBitmap = cropped
 
-                val uri = PreviewImageProcessor.saveToPictures(
+                val uri = savePreviewImageUseCase(
                     context = context,
                     bitmap = cropped,
                     fileName = "ScanLink_crop_${System.currentTimeMillis()}"

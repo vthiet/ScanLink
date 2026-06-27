@@ -1,29 +1,26 @@
 package com.example.scanlink.features.splash.presentation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SplashScreen(
     onNavigateToAuth: () -> Unit,
-    onNavigateToMain: () -> Unit
+    onNavigateToMain: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(Unit) {
-        // Simulate a short auth session/checking delay
-        delay(1000)
-        onNavigateToAuth()
-    }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
+    SplashContent()
+
+    LaunchedEffect(uiState.targetRoute) {
+        when (uiState.targetRoute) {
+            null -> Unit
+            com.example.scanlink.navigation.Routes.MAIN_GRAPH -> onNavigateToMain()
+            com.example.scanlink.navigation.Routes.AUTH_GRAPH -> onNavigateToAuth()
+        }
     }
 }

@@ -10,7 +10,4 @@ sealed class CameraUiState {
     data class Error(val message: String) : CameraUiState()
 }
 
-enum class ScanFilterType {
-    ORIGINAL, B_W, GRAYSCALE, MAGIC_COLOR
-}
 

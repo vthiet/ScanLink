@@ -8,7 +8,11 @@ import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
+import com.example.scanlink.features.document_scanner.domain.usecases.ApplyScanFilterUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.CreatePdfUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.ExtractTextFromImageUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.TransformDocumentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,7 +26,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    private val scanEngine: ScanEngine
+    private val transformDocumentUseCase: TransformDocumentUseCase,
+    private val applyScanFilterUseCase: ApplyScanFilterUseCase,
+    private val extractTextFromImageUseCase: ExtractTextFromImageUseCase,
+    private val createPdfUseCase: CreatePdfUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiStateHolder())
@@ -77,7 +84,7 @@ class CameraViewModel @Inject constructor(
 
                 // 2. Căn chỉnh tài liệu (Transform)
                 val (transformed, _) = withContext(Dispatchers.Default) {
-                    scanEngine.transformDocument(originalBitmap)
+                    transformDocumentUseCase(originalBitmap)
                 }
                 
                 _uiState.update { 
@@ -90,7 +97,7 @@ class CameraViewModel @Inject constructor(
 
                 // 3. Lọc màu (B&W mặc định)
                 val filtered = withContext(Dispatchers.Default) {
-                    scanEngine.applyFilters(transformed, ScanFilterType.B_W)
+                    applyScanFilterUseCase(transformed, ScanFilterType.B_W)
                 }
                 
                 _uiState.update { 
@@ -137,10 +144,10 @@ class CameraViewModel @Inject constructor(
                 }
 
                 // 1. Thực hiện OCR
-                val text = scanEngine.extractText(bitmap)
+                val text = extractTextFromImageUseCase(bitmap)
 
                 // 2. Tạo PDF
-                val pdfFile = scanEngine.createPdf(bitmap, "Scan_${System.currentTimeMillis()}")
+                val pdfFile = createPdfUseCase(bitmap, "Scan_${System.currentTimeMillis()}")
 
                 // 3. Cập nhật State
                 _uiState.update {

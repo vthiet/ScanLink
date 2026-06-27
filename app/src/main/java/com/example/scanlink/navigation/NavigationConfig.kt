@@ -4,11 +4,13 @@ object NavigationConfig {
 
     private val hiddenBottomBarRoutes = setOf(
         Screen.Camera.route,
-        Screen.OcrResult.route
+        Screen.OcrResult.route,
+        Screen.FileDetail.route
     )
 
     fun shouldShowBottomBar(currentRoute: String?): Boolean {
         return currentRoute !in hiddenBottomBarRoutes &&
-                currentRoute?.startsWith("preview/") != true
+                currentRoute?.startsWith("preview/") != true &&
+                currentRoute?.startsWith("file_detail/") != true
     }
 }
