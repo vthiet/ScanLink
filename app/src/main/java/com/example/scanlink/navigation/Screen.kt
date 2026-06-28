@@ -9,6 +9,11 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Camera : Screen("camera")
     object OcrResult : Screen("ocr")
+    object BatchPreview : Screen("batch_preview/{encodedUris}") {
+        fun createRoute(encodedUris: String = "session"): String {
+            return "batch_preview/${Uri.encode(encodedUris)}"
+        }
+    }
 
     object FileDetail : Screen("file_detail/{documentId}") {
         fun createRoute(documentId: String): String {

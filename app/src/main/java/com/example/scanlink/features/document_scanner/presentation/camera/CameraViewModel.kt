@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
 import com.example.scanlink.features.document_scanner.domain.usecases.ApplyScanFilterUseCase
 import com.example.scanlink.features.document_scanner.domain.usecases.CreatePdfUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.CreatePdfFromImageUrisUseCase
 import com.example.scanlink.features.document_scanner.domain.usecases.ExtractTextFromImageUseCase
 import com.example.scanlink.features.document_scanner.domain.usecases.TransformDocumentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,7 @@ class CameraViewModel @Inject constructor(
     private val transformDocumentUseCase: TransformDocumentUseCase,
     private val applyScanFilterUseCase: ApplyScanFilterUseCase,
     private val createPdfUseCase: CreatePdfUseCase,
+    private val createPdfFromImageUrisUseCase: CreatePdfFromImageUrisUseCase,
     private val documentRepository: com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository,
     private val apiService: com.example.scanlink.core.network.ApiService
 ) : ViewModel() {
@@ -48,7 +50,56 @@ class CameraViewModel @Inject constructor(
     }
 
     fun switchCamera() {
-        _uiState.update { it.copy(isFrontCamera = !it.isFrontCamera) }
+        _uiState.update {
+            it.copy(
+                isFrontCamera = !it.isFrontCamera,
+                flashEnabled = false
+            )
+        }
+    }
+
+    fun onCaptureSuccess(uri: String) {
+        _uiState.update { state ->
+            if (uri in state.capturedImages) {
+                state.copy(capturedImageUri = uri)
+            } else {
+                state.copy(
+                    capturedImageUri = uri,
+                    capturedImages = state.capturedImages + uri
+                )
+            }
+        }
+    }
+
+    fun removeCapturedImage(uri: String) {
+        _uiState.update { state ->
+            val updatedImages = state.capturedImages.filterNot { it == uri }
+            state.copy(
+                capturedImages = updatedImages,
+                capturedImageUri = updatedImages.lastOrNull()
+            )
+        }
+    }
+
+    fun replaceCapturedImage(oldUri: String, newUri: String) {
+        _uiState.update { state ->
+            val updatedImages = state.capturedImages.map { uri ->
+                if (uri == oldUri) newUri else uri
+            }
+            state.copy(
+                capturedImages = updatedImages,
+                capturedImageUri = if (state.capturedImageUri == oldUri) newUri else state.capturedImageUri
+            )
+        }
+    }
+
+    fun clearCapturedImages() {
+        _uiState.update {
+            it.copy(
+                capturedImages = emptyList(),
+                capturedImageUri = null
+            )
+        }
     }
 
     /**
@@ -91,11 +142,13 @@ class CameraViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         processedBitmap = filtered,
-                        uiState = CameraUiState.Success(imageUri)
+                        uiState = CameraUiState.Success(imageUri),
+                        isLoading = false
                     )
                 }
 
                 withContext(Dispatchers.Main) {
+                    onCaptureSuccess(imageUri)
                     onComplete(imageUri)
                 }
             } catch (e: Exception) {
@@ -250,6 +303,70 @@ class CameraViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val pdfFile = createPdfUseCase(bitmap, "ScanLink_${System.currentTimeMillis()}")
             _uiState.update { it.copy(isLoading = false, pdfPath = pdfFile?.absolutePath) }
+        }
+    }
+
+    fun exportCapturedImagesAsPdf(context: Context, onComplete: (String) -> Unit) {
+        val imageUris = _uiState.value.capturedImages
+        if (imageUris.isEmpty()) return
+
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val fileName = "ScanLink_${System.currentTimeMillis()}"
+                val pdfFile = createPdfFromImageUrisUseCase(
+                    context = context,
+                    imageUris = imageUris,
+                    fileName = fileName
+                )
+
+                val now = System.currentTimeMillis()
+                val documentId = java.util.UUID.randomUUID().toString()
+                val document = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                    id = documentId,
+                    ownerUid = null,
+                    title = pdfFile.name,
+                    storageUrl = null,
+                    fileSize = pdfFile.length(),
+                    extractedText = null,
+                    pdfPath = pdfFile.absolutePath,
+                    createdAt = now,
+                    updatedAt = now,
+                    isSynced = false,
+                    pageCount = imageUris.size,
+                    mimeType = "application/pdf",
+                    thumbnailPath = imageUris.firstOrNull(),
+                    lastModified = now
+                )
+                val pages = imageUris.mapIndexed { index, uri ->
+                    com.example.scanlink.features.document_scanner.domain.entities.Page(
+                        id = java.util.UUID.randomUUID().toString(),
+                        documentId = documentId,
+                        pageNumber = index + 1,
+                        imagePath = uri,
+                        ocrText = null,
+                        createdAt = now
+                    )
+                }
+
+                documentRepository.saveDocument(document, pages)
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        pdfPath = pdfFile.absolutePath
+                    )
+                }
+
+                withContext(Dispatchers.Main) {
+                    onComplete(documentId)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.update { it.copy(isLoading = false) }
+                onCaptureError("Lá»—i táº¡o PDF: ${e.localizedMessage}")
+            }
         }
     }
 }

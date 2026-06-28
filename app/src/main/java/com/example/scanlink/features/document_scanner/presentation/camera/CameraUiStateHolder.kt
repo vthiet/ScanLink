@@ -16,6 +16,7 @@ data class CameraUiStateHolder(
     val processedBitmap: Bitmap? = null,
     val detectedText: String = "",
     val pdfPath: String? = null,
-    val capturedImageUri: String? = null
+    val capturedImageUri: String? = null,
+    val capturedImages: List<String> = emptyList()
 
 )
