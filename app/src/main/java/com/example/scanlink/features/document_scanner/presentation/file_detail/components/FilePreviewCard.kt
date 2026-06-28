@@ -3,6 +3,7 @@ package com.example.scanlink.features.document_scanner.presentation.file_detail.
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -50,6 +51,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.scanlink.features.document_scanner.domain.entities.Document
+import com.example.scanlink.features.document_scanner.domain.entities.Page
 import java.io.File
 
 @Composable
@@ -58,6 +60,9 @@ fun FilePreviewCard(
     modifier: Modifier = Modifier
 ) {
     var isFullscreen by rememberSaveable { mutableStateOf(false) }
+    var fullscreenPagePath by rememberSaveable { mutableStateOf<String?>(null) }
+    val previewPages = remember(document) { document.previewPages() }
+    val showGrid = previewPages.size > 1
 
     ElevatedCard(
         modifier = modifier
@@ -70,36 +75,59 @@ fun FilePreviewCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(if (document.isPdf) 0.78f else 1f)
+                .then(
+                    if (showGrid) {
+                        Modifier
+                    } else {
+                        Modifier.aspectRatio(if (document.isPdf) 0.78f else 1f)
+                    }
+                )
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            ZoomablePreview(
-                document = document,
-                modifier = Modifier.fillMaxSize(),
-                onFullscreen = { isFullscreen = true }
-            )
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                PreviewBadge(text = if (document.isPdf) "PDF" else "IMAGE")
-                PreviewBadge(text = "${document.safePageCount} pages")
+            if (showGrid) {
+                PageGridPreview(
+                    pages = previewPages,
+                    onPageClick = { pagePath ->
+                        fullscreenPagePath = pagePath
+                        isFullscreen = true
+                    },
+                    modifier = Modifier.padding(12.dp)
+                )
+            } else {
+                ZoomablePreview(
+                    document = document,
+                    pagePath = previewPages.firstOrNull()?.imagePath,
+                    modifier = Modifier.fillMaxSize(),
+                    onFullscreen = {
+                        fullscreenPagePath = previewPages.firstOrNull()?.imagePath
+                        isFullscreen = true
+                    }
+                )
             }
 
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
-                        RoundedCornerShape(8.dp)
-                    ),
-                onClick = { isFullscreen = true }
-            ) {
-                Icon(Icons.Default.Fullscreen, contentDescription = "Full screen")
+            if (!showGrid) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PreviewBadge(text = if (document.isPdf) "PDF" else "IMAGE")
+                    PreviewBadge(text = "${document.safePageCount} pages")
+                }
+
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
+                            RoundedCornerShape(8.dp)
+                        ),
+                    onClick = { isFullscreen = true }
+                ) {
+                    Icon(Icons.Default.Fullscreen, contentDescription = "Full screen")
+                }
             }
         }
     }
@@ -117,6 +145,7 @@ fun FilePreviewCard(
             ) {
                 ZoomablePreview(
                     document = document,
+                    pagePath = fullscreenPagePath ?: previewPages.firstOrNull()?.imagePath,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 48.dp),
@@ -136,6 +165,7 @@ fun FilePreviewCard(
 @Composable
 private fun ZoomablePreview(
     document: Document,
+    pagePath: String? = null,
     modifier: Modifier = Modifier,
     onFullscreen: () -> Unit
 ) {
@@ -161,10 +191,10 @@ private fun ZoomablePreview(
             .transformable(transformableState),
         contentAlignment = Alignment.Center
     ) {
-        val model = document.previewPath
+        val model = pagePath ?: document.previewPath
         if (model != null) {
             AsyncImage(
-                model = Uri.fromFile(File(model)),
+                model = model.toPreviewModel(),
                 contentDescription = document.title,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
@@ -190,6 +220,91 @@ private fun ZoomablePreview(
             )
         }
     }
+}
+
+@Composable
+private fun PageGridPreview(
+    pages: List<Page>,
+    onPageClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        pages.chunked(2).forEach { rowPages ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowPages.forEach { page ->
+                    PagePreviewTile(
+                        page = page,
+                        onClick = { onPageClick(page.imagePath) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (rowPages.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PagePreviewTile(
+    page: Page,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(0.72f)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(onClick = onClick)
+    ) {
+        AsyncImage(
+            model = page.imagePath.toPreviewModel(),
+            contentDescription = "Page ${page.pageNumber}",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        PreviewBadge(
+            text = page.pageNumber.toString(),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+        )
+    }
+}
+
+private fun String.toPreviewModel(): Any {
+    return if (startsWith("content://") || startsWith("file://") || startsWith("android.resource://")) {
+        Uri.parse(this)
+    } else {
+        Uri.fromFile(File(this))
+    }
+}
+
+private fun Document.previewPages(): List<Page> {
+    val validPages = pages
+        .filter { it.imagePath.isNotBlank() }
+        .sortedBy { it.pageNumber }
+    if (validPages.isNotEmpty()) return validPages
+
+    val fallbackPath = previewPath ?: return emptyList()
+    return listOf(
+        Page(
+            id = "preview",
+            documentId = id,
+            pageNumber = 1,
+            imagePath = fallbackPath,
+            ocrText = null,
+            createdAt = createdAt
+        )
+    )
 }
 
 @Composable
@@ -235,13 +350,16 @@ private fun DocumentPlaceholder(
 }
 
 @Composable
-private fun PreviewBadge(text: String) {
+private fun PreviewBadge(
+    text: String,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = text,
         color = MaterialTheme.colorScheme.onPrimary,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier
+        modifier = modifier
             .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
             .padding(horizontal = 10.dp, vertical = 6.dp)
     )
