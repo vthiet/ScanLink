@@ -136,7 +136,7 @@ class PreviewViewModel @Inject constructor(
         }
     }
 
-    fun applyCrop() {
+    fun applyCrop(onSaved: (String) -> Unit = {}) {
         val state = _uiState.value
         val imageToCrop = originalImage ?: return
 
@@ -168,6 +168,9 @@ class PreviewViewModel @Inject constructor(
                     )
                 }
                 applyFilterInternal(state.selectedFilter)
+                withContext(Dispatchers.Main) {
+                    onSaved(uriString)
+                }
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(

@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.scanlink.features.dashboard.presentation.home.HomeScreen
 import com.example.scanlink.features.dashboard.presentation.profile.ProfileScreen
+import com.example.scanlink.features.document_scanner.presentation.batch_preview.BatchPreviewScreen
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraScreen
 import com.example.scanlink.features.document_scanner.presentation.camera.CameraViewModel
 import com.example.scanlink.features.document_scanner.presentation.file_detail.FileDetailScreen
@@ -79,6 +80,29 @@ fun AppNavGraph(
                 onClose = { navController.popBackStack() },
                 onNavigateToPreview = { uri ->
                     navController.navigate(Screen.Preview.createRoute(uri))
+                },
+                onNavigateToBatchPreview = {
+                    navController.navigate(Screen.BatchPreview.createRoute())
+                }
+            )
+        }
+
+        composable(Screen.BatchPreview.route) { currentBackStackEntry ->
+            val cameraBackStackEntry = remember(currentBackStackEntry) {
+                navController.getBackStackEntry(Screen.Camera.route)
+            }
+
+            val sharedCameraViewModel: CameraViewModel = hiltViewModel(cameraBackStackEntry)
+
+            BatchPreviewScreen(
+                viewModel = sharedCameraViewModel,
+                onBackClick = { navController.popBackStack() },
+                onContinueScanning = { navController.popBackStack(Screen.Camera.route, false) },
+                onRetakePage = { navController.popBackStack(Screen.Camera.route, false) },
+                onExportComplete = { documentId ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId)) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                    }
                 }
             )
         }

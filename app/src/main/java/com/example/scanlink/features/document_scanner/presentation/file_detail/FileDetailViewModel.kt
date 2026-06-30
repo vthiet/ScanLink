@@ -417,7 +417,7 @@ class FileDetailViewModel @Inject constructor(
     }
 
     fun convertDocument() {
-        _uiState.update { it.copy(actionMessage = "Convert action selected") }
+        _uiState.update { it.copy(actionMessage = "Export PDF action selected") }
     }
 
     fun copyOcrText(context: Context) {

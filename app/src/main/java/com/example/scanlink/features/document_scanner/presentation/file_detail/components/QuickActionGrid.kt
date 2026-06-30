@@ -15,9 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileCopy
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Transform
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -45,7 +45,7 @@ fun QuickActionGrid(
         QuickFileAction("Share", Icons.Default.Share, onShareClick),
         QuickFileAction("Rename", Icons.Default.Edit, onRenameClick),
         QuickFileAction("Duplicate", Icons.Default.FileCopy, onDuplicateClick),
-        QuickFileAction("Convert", Icons.Default.Transform, onConvertClick),
+        QuickFileAction("Export PDF", Icons.Default.PictureAsPdf, onConvertClick),
         QuickFileAction("Print", Icons.Default.Print, onPrintClick),
         QuickFileAction("Delete", Icons.Default.Delete, onDeleteClick)
     )

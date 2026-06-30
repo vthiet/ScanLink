@@ -2,6 +2,7 @@ package com.example.scanlink.features.document_scanner.presentation.file_detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -12,6 +13,7 @@ fun FileDetailScreen(
     onBackClick: () -> Unit,
     viewModel: FileDetailViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     FileDetailContent(
@@ -26,7 +28,7 @@ fun FileDetailScreen(
         onDismissDelete = viewModel::hideDeleteDialog,
         onConfirmDelete = { viewModel.confirmDelete(onBackClick) },
         onDuplicateClick = viewModel::duplicateDocument,
-        onConvertClick = viewModel::convertDocument,
+        onConvertClick = { viewModel.exportPdf(context) },
         onPrintClick = viewModel::printDocument,
         onCopyOcrClick = viewModel::copyOcrText,
         onShareClick = viewModel::showShareOptions,

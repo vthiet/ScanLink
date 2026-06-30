@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun CameraScreen(
     onClose: () -> Unit,
     onNavigateToPreview: (String) -> Unit,
+    onNavigateToBatchPreview: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -70,6 +71,7 @@ fun CameraScreen(
                         // Tại đây ta chỉ thực hiện điều hướng sang trang Preview.
                         onNavigateToPreview(uri)
                     },
+                    onDone = onNavigateToBatchPreview,
                     viewModel = viewModel
                 )
             }
