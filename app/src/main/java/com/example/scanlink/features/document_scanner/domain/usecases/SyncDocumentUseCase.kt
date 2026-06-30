@@ -44,8 +44,9 @@ class SyncDocumentUseCase @Inject constructor(
             documentRepository.deleteDocument(document.id)
 
             // Lưu document mới với ID từ server
+            val syncedId = serverDoc.id ?: throw Exception("Server không trả về ID tài liệu.")
             val syncedDoc = document.copy(
-                id = serverDoc.id,
+                id = syncedId,
                 ownerUid = serverDoc.ownerUid,
                 storageUrl = serverDoc.storageUrl,
                 isSynced = true,
@@ -54,7 +55,7 @@ class SyncDocumentUseCase @Inject constructor(
                 pages = document.pages.map { page ->
                     page.copy(
                         id = UUID.randomUUID().toString(),
-                        documentId = serverDoc.id,
+                        documentId = syncedId,
                         createdAt = now
                     )
                 }

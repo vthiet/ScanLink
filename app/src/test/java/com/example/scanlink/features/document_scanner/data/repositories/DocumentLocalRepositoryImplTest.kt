@@ -40,7 +40,8 @@ class DocumentLocalRepositoryImplTest {
         }
 
         override suspend fun renameDocument(documentId: String, title: String, updatedAt: Long): Int = 0
-        override fun getAllDocumentsWithPages(): Flow<List<DocumentWithPages>> = emptyFlow()
+        override fun getAllDocumentsWithPages(ownerUid: String?): Flow<List<DocumentWithPages>> = emptyFlow()
+        override suspend fun associateGuestDocuments(ownerUid: String): Int = 0
         override suspend fun getDocumentWithPagesById(documentId: String): DocumentWithPages? = null
         override fun getAllDocuments(): Flow<List<DocumentEntity>> = emptyFlow()
         override fun getPagesForDocument(documentId: String): Flow<List<PageEntity>> = emptyFlow()
