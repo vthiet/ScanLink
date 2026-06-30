@@ -3,10 +3,8 @@ package com.example.scanlink.features.document_scanner.presentation.file_detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.scanlink.core.ui.theme.ScanLinkTheme
 
 @Composable
 fun FileDetailScreen(
@@ -31,6 +29,8 @@ fun FileDetailScreen(
         onConvertClick = { viewModel.exportPdf(context) },
         onPrintClick = viewModel::printDocument,
         onCopyOcrClick = viewModel::copyOcrText,
+        onViewAllClick = viewModel::showOcrViewAll,
+        onDismissOcrViewAll = viewModel::hideOcrViewAll,
         onShareClick = viewModel::showShareOptions,
         onDismissShareOptions = viewModel::hideShareOptions,
         onSystemShareClick = viewModel::shareDocument,
@@ -51,5 +51,3 @@ fun FileDetailScreen(
         onConsumeActionMessage = viewModel::consumeActionMessage
     )
 }
-
-

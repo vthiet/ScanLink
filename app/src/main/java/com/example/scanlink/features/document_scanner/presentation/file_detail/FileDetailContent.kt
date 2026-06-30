@@ -41,15 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.BottomActionBar
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.DeleteConfirmationDialog
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.ErrorState
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.FileInformationCard
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.FilePreviewCard
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.LoadingSkeleton
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.OcrPreviewCard
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.QuickActionGrid
-import com.example.scanlink.features.document_scanner.presentation.file_detail.components.RenameDialog
+import com.example.scanlink.features.document_scanner.presentation.file_detail.components.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,6 +61,8 @@ fun FileDetailContent(
     onConvertClick: () -> Unit,
     onPrintClick: () -> Unit,
     onCopyOcrClick: (Context) -> Unit,
+    onViewAllClick: () -> Unit,
+    onDismissOcrViewAll: () -> Unit,
     onShareClick: () -> Unit,
     onDismissShareOptions: () -> Unit,
     onSystemShareClick: (Context) -> Unit,
@@ -223,11 +217,7 @@ fun FileDetailContent(
                             text = uiState.document.extractedText,
                             onCopyClick = { onCopyOcrClick(context) },
                             onEditClick = onRenameClick,
-                            onViewAllClick = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(uiState.document.extractedText.orEmpty())
-                                }
-                            },
+                            onViewAllClick = onViewAllClick,
                             onExtractTextClick = onExtractTextClick
                         )
                     }
@@ -263,8 +253,16 @@ fun FileDetailContent(
         )
     }
 
+    if (uiState.isOcrViewAllVisible && uiState.document?.extractedText != null) {
+        OcrViewAllDialog(
+            text = uiState.document.extractedText,
+            onDismiss = onDismissOcrViewAll,
+            onCopyClick = { onCopyOcrClick(context) }
+        )
+    }
+
     if (uiState.isShareOptionsVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.ShareOptionsDialog(
+        ShareOptionsDialog(
             onDismiss = onDismissShareOptions,
             onSystemShare = {
                 onDismissShareOptions()
@@ -276,7 +274,7 @@ fun FileDetailContent(
     }
 
     if (uiState.isPublicLinkDialogVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkDialog(
+        PublicLinkDialog(
             passwordValue = uiState.sharePasswordValue,
             onPasswordChange = onSharePasswordChange,
             expireDaysValue = uiState.shareExpireDaysValue,
@@ -288,7 +286,7 @@ fun FileDetailContent(
     }
 
     if (uiState.isPrivateAccessDialogVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PrivateAccessDialog(
+        PrivateAccessDialog(
             emailValue = uiState.shareEmailValue,
             onEmailChange = onShareEmailChange,
             roleValue = uiState.shareRoleValue,
@@ -300,7 +298,7 @@ fun FileDetailContent(
     }
 
     if (uiState.isPublicLinkSuccessVisible && uiState.generatedShareLink != null) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkSuccessDialog(
+        PublicLinkSuccessDialog(
             shareLink = uiState.generatedShareLink,
             onDismiss = onDismissPublicLinkSuccess,
             onCopy = {

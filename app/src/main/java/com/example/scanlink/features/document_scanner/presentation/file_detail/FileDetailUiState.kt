@@ -9,6 +9,7 @@ data class FileDetailUiState(
     val errorMessage: String? = null,
     val isRenameDialogVisible: Boolean = false,
     val isDeleteDialogVisible: Boolean = false,
+    val isOcrViewAllVisible: Boolean = false,
     val renameValue: String = "",
     val actionMessage: String? = null,
 

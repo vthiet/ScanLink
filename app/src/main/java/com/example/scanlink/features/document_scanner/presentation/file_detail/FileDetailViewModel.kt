@@ -172,7 +172,14 @@ class FileDetailViewModel @Inject constructor(
         }
     }
 
-    // ── SHARING DIALOG LOGIC ──────────────────────────────────────────────────
+    fun showOcrViewAll() {
+        _uiState.update { it.copy(isOcrViewAllVisible = true) }
+    }
+
+    fun hideOcrViewAll() {
+        _uiState.update { it.copy(isOcrViewAllVisible = false) }
+    }
+
     fun showShareOptions() {
         _uiState.update { it.copy(isShareOptionsVisible = true) }
     }
@@ -344,7 +351,6 @@ class FileDetailViewModel @Inject constructor(
                 val updatedDoc = document.copy(extractedText = extractedText)
                 documentRepository.saveDocument(updatedDoc, document.pages)
 
-                // Upload văn bản trích xuất lên server nếu tệp đã được đồng bộ
                 try {
                     val file = document.pdfPath?.let(::File)?.takeIf { it.exists() }
                     if (file != null) {
