@@ -26,3 +26,10 @@ class ServerErrorException(message: String = "Internal server error") : Exceptio
 
 /** Server trả về data null/rỗng dù status 2xx */
 class InvalidServerResponseException(message: String = "Invalid server response") : Exception(message)
+
+/** Google Sign-In: Email đã liên kết với tài khoản password */
+class GoogleEmailCollisionException(message: String = "Google email collision") : Exception(message)
+
+/** Google Sign-In không khả dụng trên thiết bị */
+class GoogleSignInUnavailableException(message: String = "Google Sign-In unavailable") : Exception(message)
+
