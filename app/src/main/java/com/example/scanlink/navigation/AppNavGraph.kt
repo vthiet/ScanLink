@@ -46,6 +46,10 @@ fun AppNavGraph(
             TransferScreen()
         }
 
+        composable(Screen.Transfer.tabRoute) {
+            TransferScreen()
+        }
+
         composable("scan") {
             ScanScreen(
                 onNavigateToDetail = { documentId ->
@@ -64,7 +68,13 @@ fun AppNavGraph(
 
         composable(Screen.FileDetail.route) {
             FileDetailScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onOpenPublicShare = { documentId ->
+                    navController.navigate(Screen.Transfer.createRoute("public", documentId))
+                },
+                onOpenPrivateShare = { documentId ->
+                    navController.navigate(Screen.Transfer.createRoute("private", documentId))
+                }
             )
         }
 
