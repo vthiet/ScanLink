@@ -11,6 +11,8 @@ import com.example.scanlink.core.ui.theme.ScanLinkTheme
 @Composable
 fun FileDetailScreen(
     onBackClick: () -> Unit,
+    onOpenPublicShare: (String) -> Unit,
+    onOpenPrivateShare: (String) -> Unit,
     viewModel: FileDetailViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -34,17 +36,16 @@ fun FileDetailScreen(
         onShareClick = viewModel::showShareOptions,
         onDismissShareOptions = viewModel::hideShareOptions,
         onSystemShareClick = viewModel::shareDocument,
-        onPublicLinkClick = viewModel::showPublicLinkDialog,
-        onPrivateAccessClick = viewModel::showPrivateAccessDialog,
-        onDismissPublicLink = viewModel::hidePublicLinkDialog,
-        onDismissPrivateAccess = viewModel::hidePrivateAccessDialog,
-        onSharePasswordChange = viewModel::onSharePasswordChange,
-        onShareExpireDaysChange = viewModel::onShareExpireDaysChange,
-        onShareEmailChange = viewModel::onShareEmailChange,
-        onShareRoleChange = viewModel::onShareRoleChange,
-        onConfirmPublicLink = viewModel::confirmCreatePublicLink,
-        onConfirmPrivateAccess = viewModel::confirmGrantPrivatePermission,
-        onDismissPublicLinkSuccess = viewModel::hidePublicLinkSuccess,
+        onPublicLinkClick = {
+            val documentId = uiState.document?.id
+            viewModel.hideShareOptions()
+            if (documentId != null) onOpenPublicShare(documentId)
+        },
+        onPrivateAccessClick = {
+            val documentId = uiState.document?.id
+            viewModel.hideShareOptions()
+            if (documentId != null) onOpenPrivateShare(documentId)
+        },
         onExportPdfClick = viewModel::exportPdf,
         onExportImageClick = viewModel::exportImage,
         onExtractTextClick = viewModel::extractTextFromDocument,
