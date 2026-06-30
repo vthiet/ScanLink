@@ -1,4 +1,5 @@
 package com.example.scanlink.features.dashboard.presentation.profile.components
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,10 +32,12 @@ import com.example.scanlink.core.ui.model.MenuItemData
 
 @Composable
 fun ToggleSwitch(isChecked: Boolean) {
-    val background = if (isChecked)
+    val background = if (isChecked) {
         MaterialTheme.colorScheme.primary
-    else
+    } else {
         MaterialTheme.colorScheme.surfaceVariant
+    }
+
     Box(
         modifier = Modifier
             .size(width = 38.dp, height = 21.dp)
@@ -78,7 +82,7 @@ fun EditButton() {
 }
 
 @Composable
-fun PlanBadge() {
+fun PlanBadge(providerLabel: String) {
     Row(
         modifier = Modifier
             .padding(top = 10.dp)
@@ -102,7 +106,7 @@ fun PlanBadge() {
         Spacer(modifier = Modifier.width(6.dp))
 
         Text(
-            text = "Gói Miễn phí · 500 MB",
+            text = "Gói miễn phí · $providerLabel",
             color = Color(0xFF94A3B8),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
@@ -111,7 +115,10 @@ fun PlanBadge() {
 }
 
 @Composable
-fun LogoutSection() {
+fun LogoutSection(
+    isLoggingOut: Boolean,
+    onLogoutClick: () -> Unit
+) {
     Card(
         modifier = Modifier.padding(horizontal = 16.dp),
         shape = RoundedCornerShape(14.dp),
@@ -119,13 +126,33 @@ fun LogoutSection() {
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
-        MenuItem(
-            MenuItemData(
-                icon = Icons.Default.Logout,
-                title = "Đăng xuất",
-                subtitle = "Đăng xuất khỏi tài khoản hiện tại",
-                color = MaterialTheme.colorScheme.error
+        if (isLoggingOut) {
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Đang đăng xuất...",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        } else {
+            MenuItem(
+                item = MenuItemData(
+                    icon = Icons.Default.Logout,
+                    title = "Đăng xuất",
+                    subtitle = "Đăng xuất khỏi tài khoản hiện tại",
+                    color = MaterialTheme.colorScheme.error
+                ),
+                onClick = onLogoutClick
             )
-        )
+        }
     }
 }

@@ -19,6 +19,8 @@ data class RegisterResponse (
     @SerializedName("active")
     val isActive: Boolean,
     val dateOfBirth: String?,
+    val gender: String?,
+    val providerId: String?,
     val createdAt: Long?,
     val updatedAt: Long?
 )
@@ -30,6 +32,8 @@ fun RegisterResponse.toUserEntity(): UserEntity {
         displayName = displayName,
         photoUrl = photoUrl,
         dateOfBirth = dateOfBirth,
+        gender = gender,
+        providerId = providerId,
         role = role,
         isActive = isActive,
         createdAt = createdAt,

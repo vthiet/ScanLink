@@ -5,9 +5,13 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun HomeScreen(
-    onFileClick: (String) -> Unit = {}
+    onFileClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
-    HomeContent(onFileClick = onFileClick)
+    HomeContent(
+        onFileClick = onFileClick,
+        onProfileClick = onProfileClick
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

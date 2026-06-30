@@ -29,7 +29,8 @@ import com.example.scanlink.core.ui.components.header.AppHeader
 @Composable
 fun TransferContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
-    viewModel: TransferViewModel = hiltViewModel()
+    viewModel: TransferViewModel = hiltViewModel(),
+    onProfileClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +61,10 @@ fun TransferContent(
             .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
-        AppHeader(showSearchBar = true)
+        AppHeader(
+            showSearchBar = true,
+            onAvatarClick = onProfileClick
+        )
 
         TransferActionSection(
             selectedTab = selectedTab,

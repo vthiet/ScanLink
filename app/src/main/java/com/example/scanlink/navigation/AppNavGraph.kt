@@ -25,7 +25,8 @@ import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLogout: () -> Unit = {}
 ) {
 
     NavHost(
@@ -38,12 +39,23 @@ fun AppNavGraph(
             HomeScreen(
                 onFileClick = { documentId ->
                     navController.navigate(Screen.FileDetail.createRoute(documentId))
+                },
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
 
         composable(Screen.Transfer.route) {
-            TransferScreen()
+            TransferScreen(
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
 
         composable("scan") {
@@ -58,6 +70,11 @@ fun AppNavGraph(
             HistoryScreen(
                 onFileClick = { documentId ->
                     navController.navigate(Screen.FileDetail.createRoute(documentId))
+                },
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -69,7 +86,7 @@ fun AppNavGraph(
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(onLogout = onLogout)
         }
 
         composable(Screen.Camera.route) {

@@ -40,7 +40,8 @@ fun MainGraph(
 
         AppNavGraph(
             navController = navController,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            onLogout = onLogout
         )
     }
 }

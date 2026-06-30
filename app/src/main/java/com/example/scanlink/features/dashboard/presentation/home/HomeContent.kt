@@ -41,7 +41,8 @@ import com.example.scanlink.features.dashboard.presentation.home.components.Rece
 fun HomeContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     viewModel: HomeViewModel = hiltViewModel(),
-    onFileClick: (String) -> Unit = {}
+    onFileClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -62,7 +63,10 @@ fun HomeContent(
             .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
-        AppHeader(showSearchBar = true)
+        AppHeader(
+            showSearchBar = true,
+            onAvatarClick = onProfileClick
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
