@@ -12,6 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
+import com.example.scanlink.features.document_scanner.presentation.camera.CameraUiState
+import com.example.scanlink.features.document_scanner.presentation.camera.components.ScanningOverlay
+import com.example.scanlink.features.document_scanner.presentation.ocr.components.FilterSelector
 import com.example.scanlink.features.document_scanner.presentation.preview.components.PreviewBottomActions
 import com.example.scanlink.features.document_scanner.presentation.preview.components.PreviewImageViewer
 import com.example.scanlink.features.document_scanner.presentation.preview.components.PreviewTopBar
@@ -19,6 +24,7 @@ import com.example.scanlink.features.document_scanner.presentation.preview.compo
 @Composable
 fun PreviewContent(
     state: PreviewUiState,
+    cameraUiState: CameraUiState = CameraUiState.Initial,
     onClose: () -> Unit,
     onRetake: () -> Unit,
     onRotate: () -> Unit,
@@ -27,6 +33,7 @@ fun PreviewContent(
     onDone: () -> Unit,
     onCropRectChange: (CropRect) -> Unit,
     onApplyCrop: () -> Unit,
+    onFilterSelected: (ScanFilterType) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -46,6 +53,7 @@ fun PreviewContent(
             )
 
             PreviewImageViewer(
+                previewBitmap = state.previewBitmap,
                 imageUri = state.imageUri,
                 rotation = state.rotation,
                 flipHorizontal = state.flipHorizontal,
@@ -58,6 +66,14 @@ fun PreviewContent(
                     .padding(horizontal = 8.dp, vertical = 8.dp)
             )
 
+            // Hiển thị bộ lọc màu nếu không ở chế độ Crop
+            if (!state.cropMode) {
+                FilterSelector(
+                    selectedFilter = state.selectedFilter,
+                    onFilterSelected = onFilterSelected
+                )
+            }
+
             PreviewBottomActions(
                 cropMode = state.cropMode,
                 onRetake = onRetake,
@@ -69,7 +85,13 @@ fun PreviewContent(
             )
         }
 
-        if (state.isSaving) {
+        // Hiệu ứng quét laser khi đang OCR
+        if (cameraUiState is CameraUiState.OcrProcessing) {
+            ScanningOverlay(
+                bitmap = state.previewBitmap,
+                state = cameraUiState
+            )
+        } else if (state.isSaving) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

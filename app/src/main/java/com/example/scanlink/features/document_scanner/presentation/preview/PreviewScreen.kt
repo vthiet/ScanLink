@@ -3,34 +3,29 @@ package com.example.scanlink.features.document_scanner.presentation.preview
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.scanlink.features.document_scanner.presentation.camera.CameraUiState
 
 @Composable
 fun PreviewScreen(
     imageUri: String,
+    cameraUiState: CameraUiState = CameraUiState.Initial,
     onClose: () -> Unit,
     onRetake: () -> Unit,
     onCrop: () -> Unit,
     onRotate: () -> Unit,
-    onExtractText: () -> Unit,
-    onDone: () -> Unit,
-    viewModel: PreviewViewModel = viewModel()
+    onExtractText: (String) -> Unit,
+    onDone: (String) -> Unit,
+    viewModel: PreviewViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(imageUri) {
         viewModel.setImageUri(imageUri)
-    }
-
-    LaunchedEffect(state.savedUri) {
-        if (state.savedUri != null) {
-            Toast.makeText(context, "Đã lưu tài liệu", Toast.LENGTH_SHORT).show()
-            onDone()
-        }
     }
 
     LaunchedEffect(state.errorMessage) {
@@ -41,6 +36,7 @@ fun PreviewScreen(
 
     PreviewContent(
         state = state,
+        cameraUiState = cameraUiState,
         onClose = onClose,
         onRetake = onRetake,
         onRotate = {
@@ -52,11 +48,21 @@ fun PreviewScreen(
         },
         onCropRectChange = viewModel::updateCropRect,
         onApplyCrop = {
-            viewModel.applyCrop(context)
+            // applyCrop() không còn nhận tham số context
+            viewModel.applyCrop()
         },
-        onExtractText = onExtractText,
+        onExtractText = {
+            // saveImage() nhận callback trực tiếp, không nhận context
+            viewModel.saveImage { savedUri ->
+                onExtractText(savedUri)
+            }
+        },
         onDone = {
-            viewModel.saveImage(context)
-        }
+            // saveImage() nhận callback trực tiếp, không nhận context
+            viewModel.saveImage { savedUri ->
+                onDone(savedUri)
+            }
+        },
+        onFilterSelected = viewModel::onFilterSelected
     )
 }

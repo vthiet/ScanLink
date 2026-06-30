@@ -8,20 +8,34 @@ import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scanlink.features.document_scanner.data.engine.ScanEngine
+import com.example.scanlink.features.document_scanner.domain.entities.ScanFilterType
+import com.example.scanlink.features.document_scanner.domain.usecases.ApplyScanFilterUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.CreatePdfUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.CreatePdfFromImageUrisUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.ExtractTextFromImageUseCase
+import com.example.scanlink.features.document_scanner.domain.usecases.TransformDocumentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import java.io.File
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    private val scanEngine: ScanEngine
+    private val transformDocumentUseCase: TransformDocumentUseCase,
+    private val applyScanFilterUseCase: ApplyScanFilterUseCase,
+    private val createPdfUseCase: CreatePdfUseCase,
+    private val createPdfFromImageUrisUseCase: CreatePdfFromImageUrisUseCase,
+    private val documentRepository: com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository,
+    private val apiService: com.example.scanlink.core.network.ApiService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiStateHolder())
@@ -36,150 +50,229 @@ class CameraViewModel @Inject constructor(
     }
 
     fun switchCamera() {
-        _uiState.update { it.copy(isFrontCamera = !it.isFrontCamera) }
-    }
-
-    fun onFilterSelected(filterType: ScanFilterType) {
-        val transformed = _uiState.value.transformedBitmap ?: return
-        
-        viewModelScope.launch(Dispatchers.Default) {
-            val filtered = scanEngine.applyFilters(transformed, filterType)
-            _uiState.update { 
-                it.copy(
-                    selectedFilter = filterType,
-                    processedBitmap = filtered
-                )
-            }
-        }
-    }
-    fun onCaptureStarted() {
         _uiState.update {
             it.copy(
-                uiState = CameraUiState.Capturing,
-                isLoading = true
+                isFrontCamera = !it.isFrontCamera,
+                flashEnabled = false
             )
         }
     }
 
-    fun onCaptureSuccess(context: Context, imageUri: String) {
-        viewModelScope.launch {
-            try {
-                // 1. Load Original Bitmap
-                _uiState.update { it.copy(isLoading = true, uiState = CameraUiState.Transforming) }
+    fun onCaptureSuccess(uri: String) {
+        _uiState.update { state ->
+            if (uri in state.capturedImages) {
+                state.copy(capturedImageUri = uri)
+            } else {
+                state.copy(
+                    capturedImageUri = uri,
+                    capturedImages = state.capturedImages + uri
+                )
+            }
+        }
+    }
 
+    fun removeCapturedImage(uri: String) {
+        _uiState.update { state ->
+            val updatedImages = state.capturedImages.filterNot { it == uri }
+            state.copy(
+                capturedImages = updatedImages,
+                capturedImageUri = updatedImages.lastOrNull()
+            )
+        }
+    }
+
+    fun replaceCapturedImage(oldUri: String, newUri: String) {
+        _uiState.update { state ->
+            val updatedImages = state.capturedImages.map { uri ->
+                if (uri == oldUri) newUri else uri
+            }
+            state.copy(
+                capturedImages = updatedImages,
+                capturedImageUri = if (state.capturedImageUri == oldUri) newUri else state.capturedImageUri
+            )
+        }
+    }
+
+    fun clearCapturedImages() {
+        _uiState.update {
+            it.copy(
+                capturedImages = emptyList(),
+                capturedImageUri = null
+            )
+        }
+    }
+
+    /**
+     * Hiệu ứng Laser Scan ngay sau khi chụp
+     */
+    fun onCaptureSuccess(context: Context, imageUri: String, onComplete: (String) -> Unit) {
+        _uiState.update {
+            it.copy(isLoading = true, uiState = CameraUiState.Transforming)
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 val uri = Uri.parse(imageUri)
+
                 val originalBitmap = withContext(Dispatchers.IO) {
                     context.contentResolver.openInputStream(uri).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)
+                        BitmapFactory.decodeStream(inputStream)?.let { rotateImageIfRequired(context, it, uri) }
                     }
-                }
+                } ?: throw Exception("Không thể đọc ảnh")
 
-                if (originalBitmap == null) {
-                    onCaptureError("Không thể đọc dữ liệu ảnh chụp.")
-                    return@launch
-                }
-
-                // Cập nhật ảnh gốc lên UI để làm hiệu ứng
                 _uiState.update { it.copy(originalBitmap = originalBitmap) }
+                delay(400)
 
-                // 2. Perspective Transform (Cắt phẳng)
-                val (transformed, detected) = withContext(Dispatchers.Default) {
-                    scanEngine.transformDocument(originalBitmap)
+                val (transformed, _) = withContext(Dispatchers.Default) {
+                    transformDocumentUseCase(originalBitmap)
                 }
+
+                val transformedBitmap = transformed as Bitmap
 
                 _uiState.update {
                     it.copy(
-                        transformedBitmap = transformed,
-                        processedBitmap = transformed,
+                        processedBitmap = transformedBitmap,
                         uiState = CameraUiState.Filtering
                     )
                 }
+                delay(600)
 
-                // 3. Apply Default Filter (B&W)
-                kotlinx.coroutines.delay(300)
-                val filtered = withContext(Dispatchers.Default) {
-                    scanEngine.applyFilters(transformed, ScanFilterType.B_W)
-                }
+                val filtered = applyScanFilterUseCase(transformedBitmap, ScanFilterType.B_W) as Bitmap
 
                 _uiState.update {
                     it.copy(
                         processedBitmap = filtered,
-                        uiState = CameraUiState.OcrProcessing
+                        uiState = CameraUiState.Success(imageUri),
+                        isLoading = false
                     )
                 }
 
-                // 4. OCR & PDF Generation
-                val textTask = viewModelScope.launch(Dispatchers.Default) {
-                    val text = scanEngine.extractText(transformed)
-                    _uiState.update { it.copy(detectedText = text.ifBlank { "Không tìm thấy nội dung chữ." }) }
+                withContext(Dispatchers.Main) {
+                    onCaptureSuccess(imageUri)
+                    onComplete(imageUri)
                 }
+            } catch (e: Exception) {
+                onCaptureError("Lỗi xử lý: ${e.localizedMessage}")
+            }
+        }
+    }
 
-                val pdfFile = withContext(Dispatchers.IO) {
-                    scanEngine.createPdf(filtered, "Scan_${System.currentTimeMillis()}")
+    /**
+     * Lưu tài liệu cục bộ và tải lên máy chủ
+     */
+    fun saveAndUploadDocument(context: Context, imageUri: String, onComplete: (String) -> Unit) {
+        _uiState.update {
+            it.copy(isLoading = true)
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val uri = Uri.parse(imageUri)
+                val bitmap = context.contentResolver.openInputStream(uri).use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                } ?: throw Exception("Lỗi đọc tệp ảnh")
+
+                // 1. Tạo file PDF
+                val pdfFile = createPdfUseCase(bitmap, "Scan_${System.currentTimeMillis()}")
+                    ?: throw Exception("Lỗi tạo file PDF")
+
+                android.util.Log.d("ScanLink", "Uploading camera PDF. Size: ${pdfFile.length()} bytes")
+                val requestFile = pdfFile.asRequestBody("application/pdf".toMediaTypeOrNull())
+                val filePart = okhttp3.MultipartBody.Part.createFormData("file", pdfFile.name, requestFile)
+                val cleanTitle = pdfFile.name.substringBeforeLast(".")
+                val titlePart = okhttp3.MultipartBody.Part.createFormData("title", cleanTitle)
+                val textPart = okhttp3.MultipartBody.Part.createFormData("extractedText", "")
+
+                val response = apiService.uploadDocument(filePart, titlePart, textPart).execute()
+
+                val now = System.currentTimeMillis()
+                val finalDocId = if (response.isSuccessful && response.body()?.data != null) {
+                    val serverDoc = response.body()!!.data!!
+
+                    // Lưu local DB bằng chính ID được sinh bởi Server
+                    val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                        id = serverDoc.id,
+                        ownerUid = serverDoc.ownerUid,
+                        title = serverDoc.title,
+                        storageUrl = serverDoc.storageUrl,
+                        fileSize = pdfFile.length(),
+                        extractedText = null,
+                        pdfPath = pdfFile.absolutePath,
+                        createdAt = now,
+                        updatedAt = now,
+                        isSynced = true,
+                        pageCount = 1,
+                        mimeType = "application/pdf",
+                        thumbnailPath = imageUri,
+                        lastModified = now
+                    )
+                    val page = com.example.scanlink.features.document_scanner.domain.entities.Page(
+                        id = java.util.UUID.randomUUID().toString(),
+                        documentId = serverDoc.id,
+                        pageNumber = 1,
+                        imagePath = imageUri,
+                        ocrText = null,
+                        createdAt = now
+                    )
+                    documentRepository.saveDocument(newDoc, listOf(page))
+                    serverDoc.id
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    android.util.Log.e("ScanLink", "Upload failed. Code: ${response.code()}, Error: $errorBody")
+
+                    // Nếu upload lỗi, lưu offline bằng ID client tự sinh
+                    val localId = java.util.UUID.randomUUID().toString()
+                    val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                        id = localId,
+                        ownerUid = null,
+                        title = pdfFile.name,
+                        storageUrl = null,
+                        fileSize = pdfFile.length(),
+                        extractedText = null,
+                        pdfPath = pdfFile.absolutePath,
+                        createdAt = now,
+                        updatedAt = now,
+                        isSynced = false,
+                        pageCount = 1,
+                        mimeType = "application/pdf",
+                        thumbnailPath = imageUri,
+                        lastModified = now
+                    )
+                    val page = com.example.scanlink.features.document_scanner.domain.entities.Page(
+                        id = java.util.UUID.randomUUID().toString(),
+                        documentId = localId,
+                        pageNumber = 1,
+                        imagePath = imageUri,
+                        ocrText = null,
+                        createdAt = now
+                    )
+                    documentRepository.saveDocument(newDoc, listOf(page))
+                    localId
                 }
-
-                textTask.join() // Chờ OCR xong
 
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
-                        uiState = CameraUiState.Success(imageUri, it.selectedMode)
+                        processedBitmap = bitmap,
+                        pdfPath = pdfFile.absolutePath,
+                        isLoading = false
                     )
                 }
-            } catch (e: Exception) {
-                onCaptureError("Lỗi xử lý tài liệu: ${e.localizedMessage}")
-            }
-        }
-    }
 
-    fun extractTextFromPreview(context: Context, imageUri: String) {
-        val currentText = _uiState.value.detectedText
-        if (currentText.isNotEmpty() && currentText != "Không tìm thấy nội dung chữ.") {
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val uri = Uri.parse(imageUri)
-                val bitmap = withContext(Dispatchers.IO) {
-                    context.contentResolver.openInputStream(uri).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)
-                    }
-                }
-                if (bitmap != null) {
-                    val (transformed, _) = withContext(Dispatchers.Default) {
-                        scanEngine.transformDocument(bitmap)
-                    }
-                    val text = withContext(Dispatchers.Default) {
-                        scanEngine.extractText(transformed)
-                    }
-                    _uiState.update {
-                        it.copy(
-                            detectedText = text.ifBlank { "Không tìm thấy nội dung chữ." },
-                            isLoading = false
-                        )
-                    }
-                } else {
-                    _uiState.update { it.copy(isLoading = false) }
-                }
+                withContext(Dispatchers.Main) { onComplete(finalDocId) }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
+                onCaptureError("Lỗi lưu tài liệu: ${e.localizedMessage}")
             }
         }
     }
 
-
-    fun saveDocument(pdfFileName: String = "Scan_${System.currentTimeMillis()}") {
+    fun onFilterSelected(filterType: ScanFilterType) {
         val bitmap = _uiState.value.processedBitmap ?: return
-        
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true) }
-            val pdfFile = scanEngine.createPdf(bitmap, pdfFileName)
-            _uiState.update { 
-                it.copy(
-                    isLoading = false,
-                    pdfPath = pdfFile?.absolutePath
-                )
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = applyScanFilterUseCase(bitmap, filterType)
+            _uiState.update {
+                it.copy(selectedFilter = filterType, processedBitmap = filtered as? Bitmap)
             }
         }
     }
@@ -187,10 +280,7 @@ class CameraViewModel @Inject constructor(
     private fun rotateImageIfRequired(context: Context, img: Bitmap, selectedImage: Uri): Bitmap {
         val input = context.contentResolver.openInputStream(selectedImage)
         val ei = input?.use { ExifInterface(it) } ?: return img
-        
-        val orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-
-        return when (orientation) {
+        return when (ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
             ExifInterface.ORIENTATION_ROTATE_90 -> rotateImage(img, 90f)
             ExifInterface.ORIENTATION_ROTATE_180 -> rotateImage(img, 180f)
             ExifInterface.ORIENTATION_ROTATE_270 -> rotateImage(img, 270f)
@@ -199,18 +289,84 @@ class CameraViewModel @Inject constructor(
     }
 
     private fun rotateImage(img: Bitmap, degree: Float): Bitmap {
-        val matrix = Matrix()
-        matrix.postRotate(degree)
-        val rotatedImg = Bitmap.createBitmap(img, 0, 0, img.width, img.height, matrix, true)
-        return rotatedImg
+        val matrix = Matrix().apply { postRotate(degree) }
+        return Bitmap.createBitmap(img, 0, 0, img.width, img.height, matrix, true)
     }
 
     fun onCaptureError(message: String) {
-        _uiState.update {
-            it.copy(
-                uiState = CameraUiState.Error(message),
-                isLoading = false
-            )
+        _uiState.update { it.copy(uiState = CameraUiState.Error(message), isLoading = false) }
+    }
+
+    fun saveDocument() {
+        val bitmap = _uiState.value.processedBitmap ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            val pdfFile = createPdfUseCase(bitmap, "ScanLink_${System.currentTimeMillis()}")
+            _uiState.update { it.copy(isLoading = false, pdfPath = pdfFile?.absolutePath) }
+        }
+    }
+
+    fun exportCapturedImagesAsPdf(context: Context, onComplete: (String) -> Unit) {
+        val imageUris = _uiState.value.capturedImages
+        if (imageUris.isEmpty()) return
+
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val fileName = "ScanLink_${System.currentTimeMillis()}"
+                val pdfFile = createPdfFromImageUrisUseCase(
+                    context = context,
+                    imageUris = imageUris,
+                    fileName = fileName
+                )
+
+                val now = System.currentTimeMillis()
+                val documentId = java.util.UUID.randomUUID().toString()
+                val document = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                    id = documentId,
+                    ownerUid = null,
+                    title = pdfFile.name,
+                    storageUrl = null,
+                    fileSize = pdfFile.length(),
+                    extractedText = null,
+                    pdfPath = pdfFile.absolutePath,
+                    createdAt = now,
+                    updatedAt = now,
+                    isSynced = false,
+                    pageCount = imageUris.size,
+                    mimeType = "application/pdf",
+                    thumbnailPath = imageUris.firstOrNull(),
+                    lastModified = now
+                )
+                val pages = imageUris.mapIndexed { index, uri ->
+                    com.example.scanlink.features.document_scanner.domain.entities.Page(
+                        id = java.util.UUID.randomUUID().toString(),
+                        documentId = documentId,
+                        pageNumber = index + 1,
+                        imagePath = uri,
+                        ocrText = null,
+                        createdAt = now
+                    )
+                }
+
+                documentRepository.saveDocument(document, pages)
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        pdfPath = pdfFile.absolutePath
+                    )
+                }
+
+                withContext(Dispatchers.Main) {
+                    onComplete(documentId)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.update { it.copy(isLoading = false) }
+                onCaptureError("Lá»—i táº¡o PDF: ${e.localizedMessage}")
+            }
         }
     }
 }

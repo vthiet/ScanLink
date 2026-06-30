@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.core.ui.model.FileType
 import com.example.scanlink.core.ui.model.RecentFile
 import com.example.scanlink.core.ui.components.card.RecentFileItem
@@ -23,67 +27,12 @@ data class DateGroup(
 )
 
 @Composable
-fun HistoryContent() {
-
-    val groupedFiles = remember {
-        listOf(
-            DateGroup(
-                title = "HÔM NAY — 22/05/2026",
-                files = listOf(
-                    RecentFile(
-                        id = "1",
-                        name = "Hợp đồng Q2_2026.PDF",
-                        type = FileType.PDF,
-                        createdAt = "22:14",
-                        sizeLabel = "2.4 MB",
-                        statusText = "Tải lên",
-                        statusColor = Color(0xFF00CFA4)
-                    ),
-                    RecentFile(
-                        id = "2",
-                        name = "Biên bản họp tháng 5.PDF",
-                        type = FileType.PDF,
-                        createdAt = "19:07",
-                        sizeLabel = "890 KB",
-                        statusText = "Chia sẻ",
-                        statusColor = Color(0xFF3498DB)
-                    )
-                )
-            ),
-            DateGroup(
-                title = "HÔM QUA — 21/05/2026",
-                files = listOf(
-                    RecentFile(
-                        id = "3",
-                        name = "CCCD_MatTruoc.JPG",
-                        type = FileType.JPG,
-                        createdAt = "14:32",
-                        sizeLabel = "1.1 MB",
-                        statusText = "Quét OCR",
-                        statusColor = Color(0xFF9B59B6)
-                    ),
-                    RecentFile(
-                        id = "4",
-                        name = "Báo cáo tổng kết Sprint 4.docx",
-                        type = FileType.DOCX,
-                        createdAt = "16:50",
-                        sizeLabel = "540 KB",
-                        statusText = "Tải lên",
-                        statusColor = Color(0xFF00CFA4)
-                    ),
-                    RecentFile(
-                        id = "5",
-                        name = "Tên File 2.PDF",
-                        type = FileType.PDF,
-                        createdAt = "11:20",
-                        sizeLabel = "3.1 MB",
-                        statusText = "Chia sẻ",
-                        statusColor = Color(0xFF3498DB)
-                    )
-                )
-            )
-        )
-    }
+fun HistoryContent(
+    onFileClick: (String) -> Unit = {},
+    viewModel: HistoryViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val groupedFiles = uiState.groupedFiles
 
     Column(
         modifier = Modifier
@@ -119,7 +68,10 @@ fun HistoryContent() {
 
                 // Files trong group đó
                 items(group.files) { file ->
-                    RecentFileItem(file = file)
+                    RecentFileItem(
+                        file = file,
+                        onClick = { onFileClick(file.id) }
+                    )
                 }
             }
 

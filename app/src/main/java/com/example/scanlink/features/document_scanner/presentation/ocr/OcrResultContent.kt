@@ -7,8 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,17 +18,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.scanlink.features.document_scanner.presentation.camera.ScanFilterType
 import com.example.scanlink.features.document_scanner.presentation.ocr.components.*
 import kotlin.math.roundToInt
 
@@ -39,8 +34,6 @@ fun OcrResultContent(
     processedBitmap: Bitmap?,
     detectedText: String,
     pdfPath: String?,
-    selectedFilter: ScanFilterType,
-    onFilterSelected: (ScanFilterType) -> Unit,
     onBackClick: () -> Unit,
     onSaveToDbClick: () -> Unit
 ) {
@@ -50,15 +43,15 @@ fun OcrResultContent(
     var offsetY by remember { mutableStateOf(0f) }
     val density = LocalDensity.current
     
-    // Tăng giới hạn kéo lên để phủ hết phần ảnh (320dp là điểm bắt đầu)
-    val maxCollapseOffset = with(density) { -320.dp.toPx() }
+    // Giới hạn kéo lên để che phần ảnh (khoảng 280dp-320dp tùy thiết kế)
+    val maxCollapseOffset = with(density) { -280.dp.toPx() }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // 1. LỚP DƯỚI: Chứa phần ảnh và bộ lọc
+        // 1. LỚP DƯỚI: Chứa phần ảnh (Đã được áp bộ lọc từ trang Preview)
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -68,13 +61,11 @@ fun OcrResultContent(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
+                        .height(280.dp) // Tăng diện tích hiển thị ảnh
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { showFullScreenImage = true },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -85,11 +76,7 @@ fun OcrResultContent(
                 }
             }
             
-            // Bộ lọc màu
-            FilterSelector(
-                selectedFilter = selectedFilter,
-                onFilterSelected = onFilterSelected
-            )
+            Spacer(modifier = Modifier.height(12.dp))
             
             DocumentInfoCard(pdfPath = pdfPath)
         }
@@ -98,7 +85,7 @@ fun OcrResultContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) }
+                .offset { IntOffset(0, (320.dp.toPx() + offsetY).roundToInt()) } 
                 .background(
                     color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
@@ -107,8 +94,8 @@ fun OcrResultContent(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { delta ->
                         val newOffset = offsetY + delta
-                        // Cho phép kéo lên hết cỡ để che ảnh, và kéo xuống một chút tạo hiệu ứng bounce
-                        offsetY = newOffset.coerceIn(maxCollapseOffset, 50f)
+                        // FIX: Giới hạn tối đa là 0f để không bao giờ bị hở vết trắng phía dưới
+                        offsetY = newOffset.coerceIn(maxCollapseOffset, 0f)
                     }
                 )
         ) {
@@ -161,31 +148,15 @@ fun FullScreenImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        var scale by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(Offset.Zero) }
-        
-        val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            scale = (scale * zoomChange).coerceIn(1f, 5f)
-            offset += offsetChange
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(Color.Black)
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offset.x,
-                        translationY = offset.y
-                    )
-                    .transformable(state = state),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
 
@@ -194,13 +165,9 @@ fun FullScreenImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(16.dp)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f), CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
             }
         }
     }

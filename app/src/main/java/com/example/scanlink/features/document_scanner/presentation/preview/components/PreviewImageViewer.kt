@@ -1,33 +1,45 @@
 package com.example.scanlink.features.document_scanner.presentation.preview.components
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.example.scanlink.features.document_scanner.presentation.preview.CropRect
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
-import kotlin.math.roundToInt
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
+import com.example.scanlink.features.document_scanner.domain.entities.CropRect
 
 @Composable
 fun PreviewImageViewer(
+    previewBitmap: Bitmap?,
     imageUri: String,
     rotation: Float,
     flipHorizontal: Boolean,
@@ -36,33 +48,74 @@ fun PreviewImageViewer(
     cropRect: CropRect,
     onCropRectChange: (CropRect) -> Unit,
     modifier: Modifier = Modifier
-){
+) {
+    val density = LocalDensity.current
+    val shape = RoundedCornerShape(14.dp)
+    var viewportSizePx by remember { mutableStateOf(IntSize.Zero) }
+    var zoom by remember { mutableStateOf(1f) }
+    var pan by remember { mutableStateOf(Offset.Zero) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF111827))
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.10f),
-                shape = RoundedCornerShape(14.dp)
-            )
+            .onSizeChanged { viewportSizePx = it }
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
     ) {
-        AsyncImage(
-            model = imageUri,
-            contentDescription = "Document preview",
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
-                .graphicsLayer(
-                    rotationZ = rotation,
-                    scaleX = if (flipHorizontal) -1f else 1f,
-                    scaleY = if (flipVertical) -1f else 1f
-                ),
-            contentScale = ContentScale.Fit
+        LaunchedEffect(previewBitmap) {
+            zoom = 1f
+            pan = Offset.Zero
+        }
+
+        val viewportSize = Size(
+            width = viewportSizePx.width.toFloat().coerceAtLeast(1f),
+            height = viewportSizePx.height.toFloat().coerceAtLeast(1f)
         )
 
-        if (cropMode) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(viewportSize) {
+                    detectTransformGestures { _, panChange, zoomChange, _ ->
+                        zoom = (zoom * zoomChange).coerceIn(1f, 5f)
+                        pan += panChange
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (previewBitmap != null) {
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = "Document preview",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            translationX = pan.x,
+                            translationY = pan.y,
+                            scaleX = zoom * if (flipHorizontal) -1f else 1f,
+                            scaleY = zoom * if (flipVertical) -1f else 1f,
+                            rotationZ = rotation
+                        ),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Document preview",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = if (flipHorizontal) -1f else 1f,
+                            scaleY = if (flipVertical) -1f else 1f,
+                            rotationZ = rotation
+                        ),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+
+        if (cropMode && previewBitmap != null) {
             CropOverlay(
                 cropRect = cropRect,
                 onCropRectChange = onCropRectChange,
@@ -78,89 +131,28 @@ private fun CropOverlay(
     onCropRectChange: (CropRect) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier) {
+    Canvas(modifier = modifier) {
+        val left = size.width * cropRect.left
+        val top = size.height * cropRect.top
+        val right = size.width * cropRect.right
+        val bottom = size.height * cropRect.bottom
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        // Draw dim background
+        drawRect(color = Color.Black.copy(alpha = 0.5f))
+        
+        // Draw clear hole for crop area (simplified)
+        drawRect(
+            color = Color.Transparent,
+            topLeft = Offset(left, top),
+            size = Size(right - left, bottom - top)
+        )
 
-            val left = size.width * cropRect.left
-            val top = size.height * cropRect.top
-            val right = size.width * cropRect.right
-            val bottom = size.height * cropRect.bottom
-
-            drawRect(
-                color = Color.Black.copy(alpha = 0.45f)
-            )
-
-            drawRoundRect(
-                color = Color(0xFF5EEAD4),
-                topLeft = Offset(left, top),
-                size = Size(
-                    right - left,
-                    bottom - top
-                ),
-                style = Stroke(width = 4f)
-            )
-        }
-
-        CropHandle(
-            cropRect.left,
-            cropRect.top
-        ) { dx, dy ->
-            onCropRectChange(
-                cropRect.copy(
-                    left = (cropRect.left + dx).coerceIn(
-                        0f,
-                        cropRect.right - 0.1f
-                    ),
-                    top = (cropRect.top + dy).coerceIn(
-                        0f,
-                        cropRect.bottom - 0.1f
-                    )
-                )
-            )
-        }
-
-        CropHandle(
-            cropRect.right,
-            cropRect.bottom
-        ) { dx, dy ->
-            onCropRectChange(
-                cropRect.copy(
-                    right = (cropRect.right + dx).coerceIn(
-                        cropRect.left + 0.1f,
-                        1f
-                    ),
-                    bottom = (cropRect.bottom + dy).coerceIn(
-                        cropRect.top + 0.1f,
-                        1f
-                    )
-                )
-            )
-        }
+        // Draw border
+        drawRect(
+            color = Color(0xFF5EEAD4),
+            topLeft = Offset(left, top),
+            size = Size(right - left, bottom - top),
+            style = Stroke(width = 2.dp.toPx())
+        )
     }
-}
-@Composable
-private fun CropHandle(
-    xPercent: Float,
-    yPercent: Float,
-    onDrag: (Float, Float) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .offset {
-                IntOffset(
-                    (xPercent * 800).roundToInt(),
-                    (yPercent * 1200).roundToInt()
-                )
-            }
-            .background(Color(0xFF5EEAD4))
-            .pointerInput(Unit) {
-                detectDragGestures { _, dragAmount ->
-                    onDrag(
-                        dragAmount.x / 800f,
-                        dragAmount.y / 1200f
-                    )
-                }
-            }
-    )
 }

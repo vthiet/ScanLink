@@ -3,11 +3,14 @@ package com.example.scanlink.features.document_scanner.presentation.camera
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraBottomControls
 import com.example.scanlink.features.document_scanner.presentation.camera.components.CameraViewfinder
@@ -18,6 +21,7 @@ import com.example.scanlink.features.file_sharing.presentation.ui.camera.compone
 fun CameraContent(
     onClose: () -> Unit = {},
     onPhotoCaptured: (String) -> Unit = {},
+    onDone: () -> Unit = {},
     viewModel: CameraViewModel
 ) {
 
@@ -30,7 +34,7 @@ fun CameraContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0A0A0C))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             CameraHeader(
                 onClose = onClose,
@@ -41,13 +45,26 @@ fun CameraContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color(0xFF111116)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 CameraViewfinder(
                     onImageCaptureReady = { imageCapture.value = it },
-                    isFrontCamera = state.isFrontCamera
+                    isFrontCamera = state.isFrontCamera,
+                    flashEnabled = state.flashEnabled
                 )
+
+                if (state.capturedImages.isNotEmpty()) {
+                    Button(
+                        onClick = onDone,
+                        enabled = !state.isLoading,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                    ) {
+                        Text(text = "Done (${state.capturedImages.size})")
+                    }
+                }
             }
 
             CameraBottomControls(
@@ -57,13 +74,17 @@ fun CameraContent(
                 flashEnabled = state.flashEnabled,
                 onFlashToggle = { viewModel.toggleFlash() },
                 onPhotoCaptured = { uri ->
-                    viewModel.onCaptureSuccess(context, uri)
-                    onPhotoCaptured(uri)
+                    viewModel.onCaptureSuccess(context, uri) {}
+                },
+                capturedImages = state.capturedImages,
+                onThumbnailClick = {
+                    state.capturedImages.lastOrNull()?.let(onPhotoCaptured)
                 },
                 isLoading = state.isLoading
             )
         }
 
+        // Lớp phủ hiệu ứng quét laser
         if (state.isLoading) {
             ScanningOverlay(
                 bitmap = state.processedBitmap ?: state.originalBitmap,

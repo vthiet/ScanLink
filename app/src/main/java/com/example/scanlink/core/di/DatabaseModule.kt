@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.scanlink.features.document_scanner.data.local.database.AppDatabase
 import com.example.scanlink.features.document_scanner.data.local.database.dao.DocumentDao
 import com.example.scanlink.features.document_scanner.data.repositories.DocumentLocalRepositoryImpl
+import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
 import com.example.scanlink.features.document_scanner.domain.repositories.IDocumentLocalRepository
 import dagger.Module
 import dagger.Provides
@@ -47,6 +48,14 @@ object DatabaseModule {
     fun provideDocumentLocalRepository(
         documentDao: DocumentDao
     ): IDocumentLocalRepository {
+        return DocumentLocalRepositoryImpl(documentDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDocumentRepository(
+        documentDao: DocumentDao
+    ): DocumentRepository {
         return DocumentLocalRepositoryImpl(documentDao)
     }
 }

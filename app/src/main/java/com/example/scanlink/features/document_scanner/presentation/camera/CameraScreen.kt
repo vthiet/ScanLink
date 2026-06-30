@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun CameraScreen(
     onClose: () -> Unit,
     onNavigateToPreview: (String) -> Unit,
+    onNavigateToBatchPreview: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -66,15 +67,18 @@ fun CameraScreen(
                 CameraContent(
                     onClose = onClose,
                     onPhotoCaptured = { uri ->
-                        viewModel.onCaptureSuccess(context, uri)
+                        // onCaptureSuccess đã được xử lý bên trong CameraContent kèm hiệu ứng laser.
+                        // Tại đây ta chỉ thực hiện điều hướng sang trang Preview.
                         onNavigateToPreview(uri)
                     },
+                    onDone = onNavigateToBatchPreview,
                     viewModel = viewModel
                 )
             }
         }
 
-        if (state.isLoading) {
+        // Chỉ hiển thị loading indicator cho trạng thái khởi tạo camera
+        if (state.isLoading && state.uiState is CameraUiState.Initial) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -94,7 +98,7 @@ private fun PermissionDeniedScreen(onRequestPermission: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF101113)),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Text(
