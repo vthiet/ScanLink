@@ -14,6 +14,6 @@ data class PreviewUiState(
     val isSaving: Boolean = false,
     val savedUri: String? = null,
     val errorMessage: String? = null,
-    val selectedFilter: ScanFilterType = ScanFilterType.ORIGINAL,
+    val selectedFilter: ScanFilterType = ScanFilterType.B_W,
     val previewBitmap: Bitmap? = null
 )

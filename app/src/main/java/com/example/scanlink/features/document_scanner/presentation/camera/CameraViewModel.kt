@@ -22,6 +22,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -40,6 +43,11 @@ class CameraViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CameraUiStateHolder())
     val uiState = _uiState.asStateFlow()
+
+    private fun getFormattedFileName(prefix: String): String {
+        val sdf = SimpleDateFormat("dd_MM_yyyy_HHmmss", Locale.getDefault())
+        return "${prefix}_${sdf.format(Date())}"
+    }
 
     fun onModeSelected(mode: String) {
         _uiState.update { it.copy(selectedMode = mode) }
@@ -132,7 +140,7 @@ class CameraViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         processedBitmap = transformedBitmap,
-                        uiState = CameraUiState.Filtering
+                        uiState = CameraUiState.Transforming
                     )
                 }
                 delay(600)
@@ -172,8 +180,7 @@ class CameraViewModel @Inject constructor(
                     BitmapFactory.decodeStream(inputStream)
                 } ?: throw Exception("Lỗi đọc tệp ảnh")
 
-                // 1. Tạo file PDF
-                val pdfFile = createPdfUseCase(bitmap, "Scan_${System.currentTimeMillis()}")
+                val pdfFile = createPdfUseCase(bitmap, getFormattedFileName("Scan"))
                     ?: throw Exception("Lỗi tạo file PDF")
 
                 android.util.Log.d("ScanLink", "Uploading camera PDF. Size: ${pdfFile.length()} bytes")
@@ -301,7 +308,7 @@ class CameraViewModel @Inject constructor(
         val bitmap = _uiState.value.processedBitmap ?: return
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
-            val pdfFile = createPdfUseCase(bitmap, "ScanLink_${System.currentTimeMillis()}")
+            val pdfFile = createPdfUseCase(bitmap, getFormattedFileName("ScanLink"))
             _uiState.update { it.copy(isLoading = false, pdfPath = pdfFile?.absolutePath) }
         }
     }
@@ -314,7 +321,7 @@ class CameraViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val fileName = "ScanLink_${System.currentTimeMillis()}"
+                val fileName = getFormattedFileName("ScanLink")
                 val pdfFile = createPdfFromImageUrisUseCase(
                     context = context,
                     imageUris = imageUris,
@@ -365,7 +372,7 @@ class CameraViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
-                onCaptureError("Lá»—i táº¡o PDF: ${e.localizedMessage}")
+                onCaptureError("Lỗi tạo PDF: ${e.localizedMessage}")
             }
         }
     }

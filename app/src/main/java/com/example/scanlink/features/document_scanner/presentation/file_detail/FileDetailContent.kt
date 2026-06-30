@@ -50,6 +50,7 @@ import com.example.scanlink.features.document_scanner.presentation.file_detail.c
 import com.example.scanlink.features.document_scanner.presentation.file_detail.components.OcrPreviewCard
 import com.example.scanlink.features.document_scanner.presentation.file_detail.components.QuickActionGrid
 import com.example.scanlink.features.document_scanner.presentation.file_detail.components.RenameDialog
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.BottomSheetShare
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,15 +75,6 @@ fun FileDetailContent(
     onSystemShareClick: (Context) -> Unit,
     onPublicLinkClick: () -> Unit,
     onPrivateAccessClick: () -> Unit,
-    onDismissPublicLink: () -> Unit,
-    onDismissPrivateAccess: () -> Unit,
-    onSharePasswordChange: (String) -> Unit,
-    onShareExpireDaysChange: (String) -> Unit,
-    onShareEmailChange: (String) -> Unit,
-    onShareRoleChange: (String) -> Unit,
-    onConfirmPublicLink: () -> Unit,
-    onConfirmPrivateAccess: () -> Unit,
-    onDismissPublicLinkSuccess: () -> Unit,
     onExportPdfClick: (Context) -> Unit,
     onExportImageClick: (Context) -> Unit,
     onExtractTextClick: () -> Unit,
@@ -264,50 +256,16 @@ fun FileDetailContent(
     }
 
     if (uiState.isShareOptionsVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.ShareOptionsDialog(
+        BottomSheetShare(
             onDismiss = onDismissShareOptions,
             onSystemShare = {
                 onDismissShareOptions()
-                onSystemShareClick(context)
+                onSystemShareClick(it)
             },
             onPublicLink = onPublicLinkClick,
-            onPrivateAccess = onPrivateAccessClick
+            onPrivateShare = onPrivateAccessClick,
+            context = context
         )
     }
 
-    if (uiState.isPublicLinkDialogVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkDialog(
-            passwordValue = uiState.sharePasswordValue,
-            onPasswordChange = onSharePasswordChange,
-            expireDaysValue = uiState.shareExpireDaysValue,
-            onExpireDaysChange = onShareExpireDaysChange,
-            isLoading = uiState.isSharingLoading,
-            onDismiss = onDismissPublicLink,
-            onConfirm = onConfirmPublicLink
-        )
-    }
-
-    if (uiState.isPrivateAccessDialogVisible) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PrivateAccessDialog(
-            emailValue = uiState.shareEmailValue,
-            onEmailChange = onShareEmailChange,
-            roleValue = uiState.shareRoleValue,
-            onRoleChange = onShareRoleChange,
-            isLoading = uiState.isSharingLoading,
-            onDismiss = onDismissPrivateAccess,
-            onConfirm = onConfirmPrivateAccess
-        )
-    }
-
-    if (uiState.isPublicLinkSuccessVisible && uiState.generatedShareLink != null) {
-        com.example.scanlink.features.document_scanner.presentation.file_detail.components.PublicLinkSuccessDialog(
-            shareLink = uiState.generatedShareLink,
-            onDismiss = onDismissPublicLinkSuccess,
-            onCopy = {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Share Link", uiState.generatedShareLink))
-                onDismissPublicLinkSuccess()
-            }
-        )
-    }
 }
