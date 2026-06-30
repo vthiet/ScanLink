@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -43,7 +44,8 @@ fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
     onFileClick: (String) -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onSmartScanClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -57,6 +59,13 @@ fun HomeContent(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val quickActions = remember { homeQuickActions }
     val documents = uiState.documents
+
+    LaunchedEffect(uiState.createdDocumentId) {
+        uiState.createdDocumentId?.let { documentId ->
+            onFileClick(documentId)
+            viewModel.consumeCreatedDocument()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -75,6 +84,7 @@ fun HomeContent(
             actions = quickActions,
             onActionClick = { action ->
                 when (action.title) {
+                    HomeAction.SmartScan.title -> onSmartScanClick()
                     HomeAction.ImportImage.title -> launcher.launch("image/*")
                 }
             }
@@ -152,33 +162,4 @@ private val homeQuickActions = listOf(
     )
 )
 
-private val sampleRecentFiles = listOf(
-    RecentFile(
-        id = "1",
-        name = "ScanLink_Project_Brief.docx",
-        sizeLabel = "820 KB",
-        type = FileType.DOCX,
-        createdAt = "2026/04/16"
-    ),
-    RecentFile(
-        id = "2",
-        name = "Mobile_Final_Report.pdf",
-        sizeLabel = "1.8 MB",
-        type = FileType.PDF,
-        createdAt = "2026/04/16"
-    ),
-    RecentFile(
-        id = "3",
-        name = "Contract_Scan.pdf",
-        sizeLabel = "3.1 MB",
-        type = FileType.PDF,
-        createdAt = "2026/04/16"
-    ),
-    RecentFile(
-        id = "4",
-        name = "Receipt_Archive.pdf",
-        sizeLabel = "2.4 MB",
-        type = FileType.PDF,
-        createdAt = "2026/04/16"
-    )
-)
+

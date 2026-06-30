@@ -7,12 +7,15 @@ import androidx.compose.ui.tooling.preview.Preview
 fun HomeScreen(
     onFileClick: (String) -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onSmartScanClick: () -> Unit = {}
 ) {
     HomeContent(
         onFileClick = onFileClick,
         onProfileClick = onProfileClick,
-        onSearchClick = onSearchClick)
+        onSearchClick = onSearchClick,
+        onSmartScanClick = onSmartScanClick
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

@@ -48,6 +48,9 @@ fun AppNavGraph(
                 },
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
+                },
+                onSmartScanClick = {
+                    navController.navigate(Screen.Camera.route)
                 }
             )
         }
