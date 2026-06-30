@@ -1,6 +1,7 @@
 package com.example.scanlink.core.ui.components.header
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +24,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AppHeader(
     modifier: Modifier = Modifier,
-    showSearchBar: Boolean = true
+    showSearchBar: Boolean = true,
+    onSearchClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -51,48 +53,29 @@ fun AppHeader(
         Spacer(modifier = Modifier.width(12.dp))
 
         if (showSearchBar) {
-            var searchText by remember { mutableStateOf("") }
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable(onClick = onSearchClick)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Tìm kiếm...",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f)
+                )
 
-            BasicTextField(
-                value = searchText,
-                onValueChange = {
-                    searchText = it
-                },
-                singleLine = true,
-                textStyle = TextStyle(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp
-                ),
-                modifier = Modifier.weight(1f),
-                decorationBox = { innerTextField ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(40.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (searchText.isEmpty()) {
-                                Text(
-                                    text = "Tìm kiếm...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
-                                )
-                            }
-                            innerTextField()
-                        }
-
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            )
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
         } else {

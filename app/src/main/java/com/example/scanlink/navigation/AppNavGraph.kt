@@ -18,6 +18,7 @@ import com.example.scanlink.features.document_scanner.presentation.camera.Camera
 import com.example.scanlink.features.document_scanner.presentation.file_detail.FileDetailScreen
 import com.example.scanlink.features.document_scanner.presentation.ocr.OcrResultScreen
 import com.example.scanlink.features.document_scanner.presentation.preview.PreviewScreen
+import com.example.scanlink.features.document_scanner.presentation.search.SearchScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
 import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
@@ -37,6 +38,18 @@ fun AppNavGraph(
         composable(Screen.Home.route) {
             HomeScreen(
                 onFileClick = { documentId ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId))
+                },
+                onSearchClick = {
+                    navController.navigate(Screen.Search.route)
+                }
+            )
+        }
+
+        composable(Screen.Search.route) {
+            SearchScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDocument = { documentId, _ ->
                     navController.navigate(Screen.FileDetail.createRoute(documentId))
                 }
             )

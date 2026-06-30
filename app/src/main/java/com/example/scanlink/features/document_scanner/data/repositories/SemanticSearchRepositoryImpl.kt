@@ -40,9 +40,9 @@ class SemanticSearchRepositoryImpl @Inject constructor(
 
     override suspend fun indexDocument(documentId: String, pageNumber: Int, text: String): Result<Unit> {
         return try {
+            // Ensure model is loaded before indexing
+            engine.loadModel()
             withContext(Dispatchers.IO) {
-                // Remove previous chunks for this document if necessary or handle in a larger scope
-                
                 // Chunking logic: simple implementation
                 val words = text.split("\\s+".toRegex())
                 val chunks = mutableListOf<String>()
@@ -79,6 +79,8 @@ class SemanticSearchRepositoryImpl @Inject constructor(
 
     override suspend fun search(queryText: String, threshold: Float): Result<List<SearchResult>> {
         return try {
+            // Ensure model is loaded before searching
+            engine.loadModel()
             withContext(Dispatchers.Default) {
                 val queryEmbedding = engine.generateEmbedding(queryText)
                 val allChunks = chunkDao.getAllChunks()
@@ -107,6 +109,17 @@ class SemanticSearchRepositoryImpl @Inject constructor(
                 }.sortedByDescending { it.score }
                 
                 Result.success(results)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun clearIndexForDocument(documentId: String): Result<Unit> {
+        return try {
+            withContext(Dispatchers.IO) {
+                chunkDao.deleteChunksByDocumentId(documentId)
+                Result.success(Unit)
             }
         } catch (e: Exception) {
             Result.failure(e)

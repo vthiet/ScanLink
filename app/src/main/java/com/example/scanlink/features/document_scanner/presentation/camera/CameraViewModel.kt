@@ -196,11 +196,12 @@ class CameraViewModel @Inject constructor(
                 val finalDocId = if (response.isSuccessful && response.body()?.data != null) {
                     val serverDoc = response.body()!!.data!!
 
+                    val serverDocId = serverDoc.id ?: java.util.UUID.randomUUID().toString()
                     // Lưu local DB bằng chính ID được sinh bởi Server
                     val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
-                        id = serverDoc.id,
+                        id = serverDocId,
                         ownerUid = serverDoc.ownerUid,
-                        title = serverDoc.title,
+                        title = serverDoc.title ?: pdfFile.name,
                         storageUrl = serverDoc.storageUrl,
                         fileSize = pdfFile.length(),
                         extractedText = null,
@@ -215,14 +216,14 @@ class CameraViewModel @Inject constructor(
                     )
                     val page = com.example.scanlink.features.document_scanner.domain.entities.Page(
                         id = java.util.UUID.randomUUID().toString(),
-                        documentId = serverDoc.id,
+                        documentId = serverDocId,
                         pageNumber = 1,
                         imagePath = imageUri,
                         ocrText = null,
                         createdAt = now
                     )
                     documentRepository.saveDocument(newDoc, listOf(page))
-                    serverDoc.id
+                    serverDocId
                 } else {
                     val errorBody = response.errorBody()?.string()
                     android.util.Log.e("ScanLink", "Upload failed. Code: ${response.code()}, Error: $errorBody")

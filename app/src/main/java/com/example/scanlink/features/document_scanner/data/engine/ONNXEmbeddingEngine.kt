@@ -5,6 +5,8 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import java.nio.LongBuffer
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ONNXEmbeddingEngine(
     private val context: Context,
@@ -12,13 +14,16 @@ class ONNXEmbeddingEngine(
 ) {
     private var env: OrtEnvironment? = null
     private var session: OrtSession? = null
+    private val mutex = Mutex()
 
     suspend fun loadModel() {
-        if (env == null || session == null) {
-            env = OrtEnvironment.getEnvironment()
-            // bge-micro-v2 model needs to be in assets/bge-micro-v2.onnx
-            val modelBytes = context.assets.open("bge-micro-v2.onnx").readBytes()
-            session = env?.createSession(modelBytes, OrtSession.SessionOptions())
+        mutex.withLock {
+            if (env == null || session == null) {
+                env = OrtEnvironment.getEnvironment()
+                // bge-micro-v2 model needs to be in assets/bge-micro-v2.onnx
+                val modelBytes = context.assets.open("bge-micro-v2.onnx").readBytes()
+                session = env?.createSession(modelBytes, OrtSession.SessionOptions())
+            }
         }
     }
 
