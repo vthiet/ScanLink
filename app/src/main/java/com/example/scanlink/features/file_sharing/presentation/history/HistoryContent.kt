@@ -29,6 +29,7 @@ data class DateGroup(
 @Composable
 fun HistoryContent(
     onFileClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {},
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -39,7 +40,10 @@ fun HistoryContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        AppHeader(showSearchBar = false)
+        AppHeader(
+            showSearchBar = false,
+            onAvatarClick = onProfileClick
+        )
 
         HistorySearchBar()
 

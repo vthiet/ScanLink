@@ -5,9 +5,13 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun HistoryScreen(
-    onFileClick: (String) -> Unit = {}
+    onFileClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
-    HistoryContent(onFileClick = onFileClick)
+    HistoryContent(
+        onFileClick = onFileClick,
+        onProfileClick = onProfileClick
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

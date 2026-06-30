@@ -127,6 +127,35 @@ class AuthenticationRepositoryImpl @Inject constructor(
         response.body()?.data?.toUserEntity() ?: throw InvalidServerResponseException()
     }
 
+    override suspend fun updateDisplayName(displayName: String): Result<UserEntity> = runCatching {
+        val trimmedName = displayName.trim()
+        if (trimmedName.isBlank()) {
+            throw BadRequestException("Tên hiển thị không được để trống")
+        }
+
+        val firebaseUser = firebaseAuth.currentUser
+            ?: throw Exception("Không có người dùng đang đăng nhập")
+
+        val profileUpdates = userProfileChangeRequest {
+            this.displayName = trimmedName
+        }
+        firebaseUser.updateProfile(profileUpdates).await()
+        firebaseUser.reload().await()
+
+        val idToken = firebaseUser.getIdToken(true).await().token
+            ?: throw Exception("Lỗi không lấy được Token xác thực")
+
+        val response: Response<ApiResponse<RegisterResponse>> =
+            authApiService.registerWithEmailAndPassword(authorization = "Bearer $idToken")
+
+        if (!response.isSuccessful) throw mapHttpError(response)
+
+        val syncedUser = response.body()?.data?.toUserEntity()
+            ?: throw InvalidServerResponseException()
+
+        syncedUser.copy(displayName = trimmedName)
+    }
+
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = runCatching {
         firebaseAuth.sendPasswordResetEmail(email).await()
     }

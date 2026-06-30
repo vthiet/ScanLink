@@ -42,6 +42,7 @@ fun HomeContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     viewModel: HomeViewModel = hiltViewModel(),
     onFileClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
     onSearchClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -63,7 +64,10 @@ fun HomeContent(
             .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
     ) {
-        AppHeader(showSearchBar = true, onSearchClick = onSearchClick)
+        AppHeader(
+            showSearchBar = true,
+            onAvatarClick = onProfileClick,
+            onSearchClick = onSearchClick)
 
         Spacer(modifier = Modifier.height(12.dp))
 
