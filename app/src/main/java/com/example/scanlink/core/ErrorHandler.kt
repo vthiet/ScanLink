@@ -23,6 +23,12 @@ fun Throwable.toUserFriendlyErrorResId(): Int {
         is FirebaseAuthInvalidCredentialsException -> R.string.error_wrong_password
         is FirebaseAuthInvalidUserException        -> R.string.error_user_not_found
         is FirebaseAuthUserCollisionException      -> R.string.error_email_already_exists
+        
+        // ── Lỗi Google Sign-In ────────────────────────────────────────────────
+        is com.example.scanlink.core.exceptions.GoogleEmailCollisionException -> R.string.error_email_collision_google
+        is com.example.scanlink.core.exceptions.GoogleSignInUnavailableException -> R.string.error_google_sign_in_unavailable
+        is androidx.credentials.exceptions.GetCredentialCancellationException -> R.string.error_google_sign_in_cancelled
+        is androidx.credentials.exceptions.GetCredentialException -> R.string.error_google_sign_in_unavailable
 
         // ── Lỗi HTTP từ Backend (SDD mục 5.2) ───────────────────────────────
         // 404: tài khoản Firebase chưa được đồng bộ sang backend (SDD INT-API-002)

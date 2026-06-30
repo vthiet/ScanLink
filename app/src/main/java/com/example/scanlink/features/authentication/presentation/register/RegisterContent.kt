@@ -8,8 +8,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import com.example.scanlink.R
+import com.example.scanlink.features.authentication.presentation.component.GoogleSignInButton
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
@@ -46,6 +58,9 @@ fun RegisterContent(
     onNavigateToLogin: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = CredentialManager.create(context)
 
     Scaffold(
         topBar = {
@@ -118,6 +133,54 @@ fun RegisterContent(
                         .height(56.dp),
                     shape = MaterialTheme.shapes.medium
                 ) { Text("Register", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
+                    Text(
+                        text = "Or",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
+                }
+
+                GoogleSignInButton(
+                    onClick = {
+                        val googleIdOption = GetGoogleIdOption.Builder()
+                            .setFilterByAuthorizedAccounts(false)
+                            .setServerClientId(context.getString(R.string.default_web_client_id))
+                            .setAutoSelectEnabled(true)
+                            .build()
+
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
+
+                        coroutineScope.launch {
+                            try {
+                                val result = credentialManager.getCredential(
+                                    context = context,
+                                    request = request
+                                )
+                                val credential = result.credential
+                                if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                    viewModel.onEvent(RegisterEvent.GoogleSignInResult(googleIdTokenCredential.idToken))
+                                } else {
+                                    viewModel.onEvent(RegisterEvent.GoogleSignInFailed(Exception("Loại thông tin xác thực không hợp lệ")))
+                                }
+                            } catch (e: Exception) {
+                                viewModel.onEvent(RegisterEvent.GoogleSignInFailed(e))
+                            }
+                        }
+                    },
+                    isLoading = state.isLoading,
+                    text = "Sign up with Google"
+                )
             }
 
             // ── Error Banner: lỗi server / network ────────────────────────────

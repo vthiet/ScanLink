@@ -25,4 +25,6 @@ interface IAuthenticationRepository {
 
     suspend fun getIdToken(): Result<String>
 
+    suspend fun signInWithGoogle(googleIdToken: String): Result<UserEntity>
+
 }

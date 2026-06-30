@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanlink.R
 import com.example.scanlink.core.toUserFriendlyErrorResId
 import com.example.scanlink.features.authentication.domain.usecases.LoginWithEmailUseCase
+import com.example.scanlink.features.authentication.domain.usecases.SignInWithGoogleUseCase
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginWithEmailUseCase
+    private val loginUseCase: LoginWithEmailUseCase,
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<LoginState> = MutableStateFlow(LoginState())
@@ -27,6 +29,10 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.EmailChanged -> onEventEmailChanged(event)
             is LoginEvent.PasswordChanged -> onEventPasswordChanged(event)
             LoginEvent.Submit -> performLogin()
+            is LoginEvent.GoogleSignInResult -> performGoogleLogin(event.idToken)
+            is LoginEvent.GoogleSignInFailed -> _state.update {
+                it.copy(isLoading = false, errorResId = event.exception.toUserFriendlyErrorResId())
+            }
         }
     }
 
@@ -91,6 +97,35 @@ class LoginViewModel @Inject constructor(
                                     errorResId = err.toUserFriendlyErrorResId()
                                 )
                             }
+                    }
+                }
+            )
+        }
+    }
+
+    private fun performGoogleLogin(idToken: String) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isLoading = true,
+                    errorResId = null,
+                    passwordErrorResId = null
+                )
+            }
+
+            val result = signInWithGoogleUseCase(idToken)
+
+            result.fold(
+                onSuccess = { entity ->
+                    _state.update { it.copy(isLoading = false, successUser = entity) }
+                },
+                onFailure = { err ->
+                    err.printStackTrace()
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            errorResId = err.toUserFriendlyErrorResId()
+                        )
                     }
                 }
             )
