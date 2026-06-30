@@ -18,7 +18,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val devBaseUrl = localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2"
+val devBaseUrl = localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080"
 
 android {
     buildTypes {
@@ -105,6 +105,11 @@ dependencies {
     implementation(libs.firebase.analytics.ktx)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    
+    // Credential Manager & Google Sign-In
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // =========================================================
     // NETWORKING

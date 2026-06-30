@@ -11,4 +11,6 @@ sealed class RegisterEvent {
 
     object Submit : RegisterEvent()
 
+    data class GoogleSignInResult(val idToken: String) : RegisterEvent()
+    data class GoogleSignInFailed(val exception: Throwable) : RegisterEvent()
 }
