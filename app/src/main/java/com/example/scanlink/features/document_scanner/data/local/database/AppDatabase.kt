@@ -12,7 +12,7 @@ import com.example.scanlink.features.document_scanner.data.local.database.entiti
 
 @Database(
     entities = [DocumentEntity::class, PageEntity::class, DocumentChunkEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(FloatArrayConverter::class)

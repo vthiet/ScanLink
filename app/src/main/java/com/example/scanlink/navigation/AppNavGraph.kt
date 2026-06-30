@@ -45,6 +45,7 @@ fun AppNavGraph(
                     navController.navigate(Screen.Profile.route) {
                         launchSingleTop = true
                     }
+                },
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
                 }
@@ -61,13 +62,7 @@ fun AppNavGraph(
         }
 
         composable(Screen.Transfer.route) {
-            TransferScreen(
-                onProfileClick = {
-                    navController.navigate(Screen.Profile.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
+            TransferScreen()
         }
 
         composable(Screen.Transfer.tabRoute) {

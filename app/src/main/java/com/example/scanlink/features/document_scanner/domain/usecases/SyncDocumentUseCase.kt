@@ -45,7 +45,7 @@ class SyncDocumentUseCase @Inject constructor(
 
             // Lưu document mới với ID từ server
             val syncedDoc = document.copy(
-                id = serverDoc.id,
+                id = serverDoc.id.orEmpty(),
                 ownerUid = serverDoc.ownerUid,
                 storageUrl = serverDoc.storageUrl,
                 isSynced = true,
@@ -54,7 +54,7 @@ class SyncDocumentUseCase @Inject constructor(
                 pages = document.pages.map { page ->
                     page.copy(
                         id = UUID.randomUUID().toString(),
-                        documentId = serverDoc.id,
+                        documentId = serverDoc.id.orEmpty(),
                         createdAt = now
                     )
                 }

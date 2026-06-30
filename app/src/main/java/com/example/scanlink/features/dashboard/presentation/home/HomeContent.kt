@@ -42,7 +42,7 @@ fun HomeContent(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     viewModel: HomeViewModel = hiltViewModel(),
     onFileClick: (String) -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
     onSearchClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
