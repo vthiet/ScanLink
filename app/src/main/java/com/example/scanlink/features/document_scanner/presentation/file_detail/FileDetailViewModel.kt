@@ -60,11 +60,11 @@ class FileDetailViewModel @Inject constructor(
                         val docResponse = apiResponse.body()?.data
                         if (docResponse != null) {
                             document = Document(
-                                id = docResponse.id,
+                                id = docResponse.id ?: documentId,
                                 ownerUid = docResponse.ownerUid,
-                                title = docResponse.title,
+                                title = docResponse.title ?: "Tài liệu không tên",
                                 storageUrl = docResponse.storageUrl,
-                                fileSize = docResponse.fileSize,
+                                fileSize = docResponse.fileSize ?: 0L,
                                 extractedText = docResponse.extractedText,
                                 pdfPath = null,
                                 createdAt = parseIsoDate(docResponse.createdAt),
@@ -88,14 +88,15 @@ class FileDetailViewModel @Inject constructor(
                 it.copy(
                     isLoading = false,
                     document = document,
-                    renameValue = document.title,
+                    renameValue = document?.title.orEmpty(),
                     errorMessage = if (document == null) result.exceptionOrNull()?.localizedMessage else null
                 )
             }
         }
     }
 
-    private fun parseIsoDate(isoStr: String): Long {
+    private fun parseIsoDate(isoStr: String?): Long {
+        if (isoStr == null) return System.currentTimeMillis()
         return try {
             val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
             format.parse(isoStr)?.time ?: System.currentTimeMillis()
@@ -346,8 +347,11 @@ class FileDetailViewModel @Inject constructor(
                 val extractedText = extractTextFromImageUseCase(bitmap)
 
                 // Cập nhật local DB
-                val updatedDoc = document.copy(extractedText = extractedText)
-                documentRepository.saveDocument(updatedDoc, document.pages)
+                val updatedPages = document.pages.mapIndexed { index, page ->
+                    if (index == 0) page.copy(ocrText = extractedText) else page
+                }
+                val updatedDoc = document.copy(extractedText = extractedText, pages = updatedPages)
+                documentRepository.saveDocument(updatedDoc, updatedPages)
 
                 // Upload văn bản trích xuất lên server nếu tệp đã được đồng bộ
                 try {

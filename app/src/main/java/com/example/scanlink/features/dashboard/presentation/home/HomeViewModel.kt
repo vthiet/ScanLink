@@ -103,27 +103,28 @@ class HomeViewModel @Inject constructor(
 }
 
 private fun DocumentResponse.toRecentFile(): RecentFile {
+    val fileTitle = title.orEmpty()
     val fileType = when {
-        title.endsWith(".pdf", ignoreCase = true) -> FileType.PDF
-        title.endsWith(".docx", ignoreCase = true) -> FileType.DOCX
-        title.endsWith(".jpg", ignoreCase = true) || title.endsWith(".jpeg", ignoreCase = true) || title.endsWith(".png", ignoreCase = true) -> FileType.JPG
+        fileTitle.endsWith(".pdf", ignoreCase = true) -> FileType.PDF
+        fileTitle.endsWith(".docx", ignoreCase = true) -> FileType.DOCX
+        fileTitle.endsWith(".jpg", ignoreCase = true) || fileTitle.endsWith(".jpeg", ignoreCase = true) || fileTitle.endsWith(".png", ignoreCase = true) -> FileType.JPG
         else -> FileType.OTHER
     }
 
-    val sizeLabel = formatFileSize(fileSize)
+    val sizeLabel = formatFileSize(fileSize ?: 0L)
 
     val dateStr = try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         val outputFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-        val parsedDate = inputFormat.parse(createdAt) ?: Date()
+        val parsedDate = inputFormat.parse(createdAt.orEmpty()) ?: Date()
         outputFormat.format(parsedDate)
     } catch (_: Exception) {
-        createdAt.take(10).replace("-", "/")
+        createdAt?.take(10)?.replace("-", "/") ?: ""
     }
 
     return RecentFile(
-        id = id,
-        name = title,
+        id = id.orEmpty(),
+        name = fileTitle,
         type = fileType,
         createdAt = dateStr,
         sizeLabel = sizeLabel,

@@ -2,7 +2,7 @@
 
 ## HỆ THỐNG QUÉT VÀ QUẢN LÝ TÀI LIỆU DI ĐỘNG (SCANLINK)
 
-**Phiên bản: 4.0 (Dựa trên khung chuẩn dự án EIP\_SCC - Cập nhật tên dự án & Firebase)**
+**Phiên bản: 4.1 (Dựa trên khung chuẩn dự án EIP\_SCC - Bổ sung Tìm kiếm Ngữ nghĩa Offline)**
 
 **Lịch sử chỉnh sửa**
 
@@ -12,6 +12,7 @@
 | AI Assistant | 18/05/2026 | Tái cấu trúc, thêm biểu đồ Mermaid và Sub-goals                | Development   | 2.0           |
 | AI Assistant | 18/05/2026 | Bổ sung Ràng buộc công nghệ, Hệ điều hành, Thư viện (Mục 1.10) | Development   | 2.1           |
 | AI Assistant | 18/05/2026 | Đổi tên dự án thành ScanLink, Tích hợp Firebase Auth           | Development   | 2.2           |
+| AI Assistant | 30/06/2026 | Bổ sung Sub-Goal 4 (Tìm kiếm ngữ nghĩa offline) và các yêu cầu chức năng/phi chức năng chuẩn IEEE. | Development   | 4.1           |
 
 ## 1\. GIỚI THIỆU (INTRODUCTION)
 
@@ -155,6 +156,10 @@ mindmap
     Sub-Goal 3(Phân phối và chia sẻ linh hoạt)
       Public link
       Private / Account-based share
+    Sub-Goal 4(Tìm kiếm ngữ nghĩa offline)
+      Phân đoạn văn bản
+      Trích xuất Vector nhúng ONNX
+      So khớp Cosine Similarity offline
 ```
 
 ### 2.2 Sơ đồ Use Case Tổng quan
@@ -177,8 +182,14 @@ flowchart LR
         UC7(7. Chia sẻ nội bộ - Viewer/Editor)
         UC8(8. Quản lý Tài khoản - Firebase)
     end
+
+    subgraph Sub-Goal 4: Tìm kiếm ngữ nghĩa - Mobile
+        UC9(9. Trích xuất Vector nhúng & Lưu trữ)
+        UC10(10. Tìm kiếm ngữ nghĩa offline)
+    end
       
     Guest --> UC1 & UC2 & UC3 & UC4
+    Guest --> UC9 & UC10
     User --> Guest
     User --> UC5 & UC6 & UC7 & UC8
 ```
@@ -226,6 +237,23 @@ flowchart LR
 | FREQ.12     | UC7       | Chia sẻ nội bộ theo Account (Email). Cấp quyền linh hoạt: Viewer (Chỉ xem/tải) hoặc Editor (Cập nhật bản mới).                  | Must           | Spring Boot          |
 | FREQ.13     | UC7       | Ngăn chặn truy cập trái phép: API trả về 401 Unauthorized nếu Firebase Token hết hạn hoặc 403 Forbidden nếu sai quyền truy cập. | Must           | Spring Boot          |
 
+### 2.6 SUB-GOAL 4: Tìm kiếm ngữ nghĩa tài liệu offline
+
+* **Mô tả:** Cho phép người dùng tìm kiếm nội dung bên trong các tài liệu đã quét bằng câu hỏi tự nhiên offline 100% trên thiết bị di động.
+* **Động lực:** Khai thác nhanh chóng thông tin tài liệu mà không cần kết nối mạng và bảo vệ quyền riêng tư tuyệt đối của dữ liệu.
+
+**Bảng Yêu cầu chức năng - Nhóm Tìm kiếm Ngữ nghĩa:**
+
+| **Req. ID** | **UC ID** | **Mô tả Yêu cầu** | **Độ ưu tiên** | **Phạm vi (Domain)** |
+| :---------: | :-------: | :---------------- | :------------: | :------------------: |
+| FREQ.14 | UC9 | Phân đoạn văn bản (Text Chunking) từ trang tài liệu gốc thành các đoạn nhỏ khoảng 100-150 từ, độ chồng lấp 20-30 từ để giữ ngữ cảnh liền mạch. | Must | Mobile Client |
+| FREQ.15 | UC9 | Sinh vector nhúng (Embedding Vector) offline 384 chiều cho mỗi đoạn văn bản bằng mô hình ONNX Quantized INT8 (`bge-micro-v2`). | Must | Mobile Client |
+| FREQ.16 | UC9 | Lưu trữ các đoạn văn bản (chunks) và vector nhúng vào cơ sở dữ liệu nội bộ Room Database (`DocumentChunkEntity`), hỗ trợ liên kết CASCADE DELETE với tài liệu gốc. | Must | Mobile Client |
+| FREQ.17 | UC10 | Tiếp nhận câu hỏi truy vấn của người dùng từ thanh tìm kiếm (Compose SearchBar) và sinh vector nhúng cho câu hỏi đó bằng cùng mô hình ONNX. | Must | Mobile Client |
+| FREQ.18 | UC10 | Tính toán Cosine Similarity giữa vector câu hỏi và toàn bộ vector chunk được tải lên bộ nhớ trên luồng nền (`Dispatchers.Default`), lọc kết quả với ngưỡng tương đồng $\ge 0.6$ và sắp xếp giảm dần. | Must | Mobile Client |
+| FREQ.19 | UC10 | Hiển thị kết quả tìm kiếm kèm thông tin trích dẫn nguồn (Tên tài liệu, Trang số X, văn bản khớp ngữ cảnh và độ tương đồng %) và hỗ trợ điều hướng nhanh tới trang tài liệu gốc. | Must | Mobile Client |
+| FREQ.20 | UC9 | Tự động cập nhật hoặc tái sinh các vector chunks khi tài liệu được cập nhật (quét lại) hoặc xóa bỏ. | Must | Mobile Client |
+
 ## 3\. YÊU CẦU PHI CHỨC NĂNG (NON-FUNCTIONAL REQUIREMENTS)
 
 ### 3.1 Yêu cầu Chất lượng Run-time (Run-time Quality)
@@ -253,6 +281,10 @@ flowchart LR
 | NFREQ.2 | Thời gian cold start của app di động \< 2 giây.                            | Performance            | Must        | Mobile     |
 | NFREQ.3 | API hỗ trợ phân trang (pagination) và lọc để tránh quá tải payload.        | Scalability            | Must        | Backend    |
 | NFREQ.4 | Tích hợp công cụ giám sát lỗi (Crashlytics) và ghi log server (ELK Stack). | Observability          | Should      | Cả hai     |
+| NFREQ.5 | Thời gian sinh vector nhúng cho một câu hỏi truy vấn phải dưới 150ms trên thiết bị cấu hình trung bình. | Performance | Must | Mobile |
+| NFREQ.6 | Thời gian thực hiện so khớp vector và tìm kiếm trong bộ nhớ phải dưới 50ms cho 5,000 chunks. | Performance | Must | Mobile |
+| NFREQ.7 | Tính năng tìm kiếm ngữ nghĩa hoạt động hoàn toàn offline 100% không yêu cầu kết nối mạng và không truyền dữ liệu ra ngoài thiết bị. | Security | Must | Mobile |
+| NFREQ.8 | Hỗ trợ cơ chế dự phòng (fallback) sang tìm kiếm từ khóa chính xác trên văn bản thô khi thiết bị không đủ tài nguyên để khởi chạy ONNX Runtime. | Reliability | Should | Mobile |
 
 ## 4\. YÊU CẦU KHÁC (OTHER REQUIREMENTS)
 

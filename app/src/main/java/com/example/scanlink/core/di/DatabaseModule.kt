@@ -7,6 +7,7 @@ import com.example.scanlink.features.document_scanner.data.local.database.dao.Do
 import com.example.scanlink.features.document_scanner.data.repositories.DocumentLocalRepositoryImpl
 import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
 import com.example.scanlink.features.document_scanner.domain.repositories.IDocumentLocalRepository
+import com.example.scanlink.features.document_scanner.domain.repositories.ISemanticSearchRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,17 +40,25 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideDocumentChunkDao(database: AppDatabase): com.example.scanlink.features.document_scanner.data.local.database.dao.DocumentChunkDao {
+        return database.documentChunkDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideDocumentLocalRepository(
-        documentDao: DocumentDao
+        documentDao: DocumentDao,
+        semanticSearchRepository: ISemanticSearchRepository
     ): IDocumentLocalRepository {
-        return DocumentLocalRepositoryImpl(documentDao)
+        return DocumentLocalRepositoryImpl(documentDao, semanticSearchRepository)
     }
 
     @Provides
     @Singleton
     fun provideDocumentRepository(
-        documentDao: DocumentDao
+        documentDao: DocumentDao,
+        semanticSearchRepository: ISemanticSearchRepository
     ): DocumentRepository {
-        return DocumentLocalRepositoryImpl(documentDao)
+        return DocumentLocalRepositoryImpl(documentDao, semanticSearchRepository)
     }
 }
