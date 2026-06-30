@@ -14,7 +14,10 @@ import com.example.scanlink.features.authentication.data.datasources.remote.dto.
 import com.example.scanlink.features.authentication.domain.entities.UserEntity
 import com.example.scanlink.features.authentication.domain.repositories.IAuthenticationRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.example.scanlink.core.exceptions.GoogleEmailCollisionException
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.tasks.await
@@ -134,5 +137,39 @@ class AuthenticationRepositoryImpl @Inject constructor(
         firebaseUser.getIdToken(true).await().token
             ?: throw Exception("Lỗi không lấy được Token xác thực")
     }
+
+    override suspend fun signInWithGoogle(googleIdToken: String): Result<UserEntity> = runCatching {
+        val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
+        val authResult = try {
+            firebaseAuth.signInWithCredential(credential).await()
+        } catch (e: FirebaseAuthUserCollisionException) {
+            throw GoogleEmailCollisionException(e.message ?: "Email collision with existing provider")
+        }
+        val firebaseUser = authResult.user ?: throw Exception("Không thể đăng nhập Firebase với Google")
+
+        val idToken = firebaseUser.getIdToken(true).await().token
+            ?: throw Exception("Lỗi không lấy được Token xác thực từ Firebase")
+
+        val bearerToken = "Bearer $idToken"
+
+        val loginResponse = authApiService.loginWithEmail(authorization = bearerToken)
+
+        if (loginResponse.isSuccessful) {
+            return@runCatching loginResponse.body()?.data?.toUserEntity()
+                ?: throw InvalidServerResponseException()
+        }
+
+        if (loginResponse.code() == 404) {
+            val registerResponse = authApiService.registerWithEmailAndPassword(authorization = bearerToken)
+            if (registerResponse.isSuccessful) {
+                return@runCatching registerResponse.body()?.data?.toUserEntity()
+                    ?: throw InvalidServerResponseException()
+            }
+            throw mapHttpError(registerResponse)
+        }
+
+        throw mapHttpError(loginResponse)
+    }
 }
+
 

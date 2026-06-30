@@ -30,4 +30,9 @@
 
     <!-- Fallback -->
     <string name="error_unknown">An error has occurred. Please try again!</string>
+
+    <!-- Google Sign-In errors -->
+    <string name="error_google_sign_in_cancelled">Sign-in cancelled</string>
+    <string name="error_google_sign_in_unavailable">Google Sign-In is unavailable on this device</string>
+    <string name="error_email_collision_google">This email is already registered with a password. Please sign in with email instead</string>
 </resources>

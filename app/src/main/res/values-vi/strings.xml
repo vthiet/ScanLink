@@ -31,4 +31,9 @@
 
     <!-- Fallback -->
     <string name="error_unknown">Đã có lỗi xảy ra. Vui lòng thử lại!</string>
+
+    <!-- Google Sign-In errors -->
+    <string name="error_google_sign_in_cancelled">Đã hủy đăng nhập</string>
+    <string name="error_google_sign_in_unavailable">Google Sign-In không khả dụng trên thiết bị này</string>
+    <string name="error_email_collision_google">Email này đã được đăng ký bằng mật khẩu. Vui lòng đăng nhập bằng email thay thế</string>
 </resources>
