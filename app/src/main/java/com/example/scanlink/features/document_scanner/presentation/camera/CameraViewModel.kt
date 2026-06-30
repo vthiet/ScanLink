@@ -342,11 +342,10 @@ class CameraViewModel @Inject constructor(
                 val now = System.currentTimeMillis()
                 val finalDocId = if (response.isSuccessful && response.body()?.data != null) {
                     val serverDoc = response.body()!!.data!!
-                    val serverDocId = serverDoc.id ?: java.util.UUID.randomUUID().toString()
                     val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
-                        id = serverDocId,
+                        id = serverDoc.id.orEmpty(),
                         ownerUid = serverDoc.ownerUid,
-                        title = serverDoc.title ?: pdfFile.name,
+                        title = serverDoc.title.orEmpty(),
                         storageUrl = serverDoc.storageUrl,
                         fileSize = pdfFile.length(),
                         extractedText = null,
@@ -362,7 +361,7 @@ class CameraViewModel @Inject constructor(
                     val pages = imageUris.mapIndexed { index, uri ->
                         com.example.scanlink.features.document_scanner.domain.entities.Page(
                             id = java.util.UUID.randomUUID().toString(),
-                            documentId = serverDocId,
+                            documentId = serverDoc.id.orEmpty(),
                             pageNumber = index + 1,
                             imagePath = uri,
                             ocrText = null,
@@ -370,7 +369,7 @@ class CameraViewModel @Inject constructor(
                         )
                     }
                     documentRepository.saveDocument(newDoc, pages)
-                    serverDocId
+                    serverDoc.id.orEmpty()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     android.util.Log.e("ScanLink", "Batch upload failed. Code: ${response.code()}, Error: $errorBody")
