@@ -13,7 +13,7 @@ import java.io.IOException
 class PDFProcessor {
 
     private fun scaleAndCompressBitmap(bitmap: Bitmap): Bitmap {
-        val maxDimension = 800
+        val maxDimension = 600
         val width = bitmap.width
         val height = bitmap.height
 
@@ -27,12 +27,19 @@ class PDFProcessor {
             bitmap
         }
 
-        // 2. Nén dung lượng qua định dạng JPEG (chất lượng 50%)
+        // 2. Chuyển đổi cấu hình sang RGB_565 để giảm 1 nửa dung lượng thô
+        val configBitmap = scaledBitmap.copy(Bitmap.Config.RGB_565, false) ?: scaledBitmap
+
+        // 3. Nén dung lượng qua định dạng JPEG (chất lượng 40%)
         val outputStream = ByteArrayOutputStream()
-        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+        configBitmap.compress(Bitmap.CompressFormat.JPEG, 40, outputStream)
         val byteArray = outputStream.toByteArray()
 
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        // 4. Giải mã lại bằng cấu hình RGB_565
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size, options) ?: configBitmap
     }
 
     fun createPdfFromBitmaps(bitmaps: List<Bitmap>, fileName: String): File? {

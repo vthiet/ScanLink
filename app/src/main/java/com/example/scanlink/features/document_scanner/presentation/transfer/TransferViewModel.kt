@@ -47,6 +47,8 @@ import javax.inject.Inject
 class TransferViewModel @Inject constructor(
     private val apiService: ApiService,
     private val documentRepository: DocumentRepository,
+    private val syncDocumentUseCase: com.example.scanlink.features.document_scanner.domain.usecases.SyncDocumentUseCase,
+    private val firebaseAuth: com.google.firebase.auth.FirebaseAuth,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -186,14 +188,18 @@ class TransferViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                apiService.createPublicShareLink(
+                val fullDocResult = documentRepository.getDocumentById(documentId)
+                val fullDoc = fullDocResult.getOrNull() ?: throw Exception("Không tìm thấy tài liệu cục bộ")
+                val finalDoc = syncDocumentUseCase(fullDoc)
+
+                val response = apiService.createPublicShareLink(
                     CreatePublicShareRequest(
-                        documentId = documentId,
+                        documentId = finalDoc.id,
                         password = password,
                         expireInDays = expireDays
                     )
                 ).execute()
-            }.onSuccess { response ->
+
                 val body = response.body()?.data
                 if (!response.isSuccessful || body == null) {
                     _uiState.update {
@@ -202,13 +208,13 @@ class TransferViewModel @Inject constructor(
                             actionMessage = "Could not generate link: ${response.code()}"
                         )
                     }
-                    return@onSuccess
+                    return@launch
                 }
 
                 val link = PublicLinkItem(
                     id = body.hashToken,
-                    documentId = documentId,
-                    documentName = document.title,
+                    documentId = finalDoc.id,
+                    documentName = finalDoc.title,
                     url = body.shareUrl.ifBlank { "https://scanlink.app/share/${body.hashToken}" },
                     createdDate = formatDate(System.currentTimeMillis()),
                     expireDate = body.expiresAt?.let(::formatIsoDate),
@@ -221,6 +227,7 @@ class TransferViewModel @Inject constructor(
                             isGenerating = false,
                             password = "",
                             expireDays = "",
+                            selectedDocumentId = finalDoc.id,
                             links = listOf(link) + current.publicShareState.links
                         ),
                         actionMessage = "Public link generated"
@@ -271,14 +278,18 @@ class TransferViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                apiService.grantPrivatePermission(
+                val fullDocResult = documentRepository.getDocumentById(documentId)
+                val fullDoc = fullDocResult.getOrNull() ?: throw Exception("Không tìm thấy tài liệu cục bộ")
+                val finalDoc = syncDocumentUseCase(fullDoc)
+
+                val response = apiService.grantPrivatePermission(
                     GrantPrivatePermissionRequest(
-                        documentId = documentId,
+                        documentId = finalDoc.id,
                         shareToEmail = email,
                         role = state.privateShareState.permission.name.uppercase()
                     )
                 ).execute()
-            }.onSuccess { response ->
+
                 val body = response.body()?.data
                 if (!response.isSuccessful || body == null) {
                     _uiState.update {
@@ -287,7 +298,7 @@ class TransferViewModel @Inject constructor(
                             actionMessage = "Could not share access: ${response.code()}"
                         )
                     }
-                    return@onSuccess
+                    return@launch
                 }
 
                 val role = body.role.let {
@@ -296,7 +307,7 @@ class TransferViewModel @Inject constructor(
                 val sharedUser = SharedUserItem(
                     id = "${body.documentId}-${body.collaboratorEmail}",
                     documentId = body.documentId,
-                    documentName = document.title,
+                    documentName = finalDoc.title,
                     email = body.collaboratorEmail,
                     permission = role,
                     sharedDate = formatDate(System.currentTimeMillis())
@@ -306,8 +317,9 @@ class TransferViewModel @Inject constructor(
                         privateShareState = current.privateShareState.copy(
                             isSharing = false,
                             email = "",
+                            selectedDocumentId = finalDoc.id,
                             sharedUsers = listOf(sharedUser) + current.privateShareState.sharedUsers.filterNot {
-                                it.documentId == documentId && it.email.equals(email, ignoreCase = true)
+                                it.documentId == finalDoc.id && it.email.equals(email, ignoreCase = true)
                             }
                         ),
                         actionMessage = "Private access shared"
@@ -353,8 +365,12 @@ class TransferViewModel @Inject constructor(
     }
 
     private fun observeLocalDocuments() {
+        val currentUid = firebaseAuth.currentUser?.uid
         viewModelScope.launch {
-            documentRepository.getDocumentsFlow().collect { docs ->
+            if (currentUid != null) {
+                documentRepository.associateGuestDocuments(currentUid)
+            }
+            documentRepository.getDocumentsFlow(currentUid).collect { docs ->
                 val documentOptions = docs.map {
                     TransferDocumentOption(
                         id = it.id,
@@ -453,8 +469,11 @@ class TransferViewModel @Inject constructor(
 
     private fun prepareUploadFile(tempFile: File, fileName: String, mimeType: String): File {
         if (!mimeType.startsWith("image/", ignoreCase = true)) return tempFile
-        val bitmap = BitmapFactory.decodeFile(tempFile.absolutePath) ?: return tempFile
-        val maxDim = 900
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+        val bitmap = BitmapFactory.decodeFile(tempFile.absolutePath, options) ?: return tempFile
+        val maxDim = 600
         val scaled = if (bitmap.width > maxDim || bitmap.height > maxDim) {
             val ratio = bitmap.width.toFloat() / bitmap.height.toFloat()
             val newWidth = if (ratio > 1) maxDim else (maxDim * ratio).toInt()
@@ -463,8 +482,9 @@ class TransferViewModel @Inject constructor(
         } else {
             bitmap
         }
+        val configBitmap = scaled.copy(Bitmap.Config.RGB_565, false) ?: scaled
         val compressedFile = File(appContext.cacheDir, "compressed_${fileName.substringBeforeLast(".")}.jpg")
-        compressedFile.outputStream().use { scaled.compress(Bitmap.CompressFormat.JPEG, 70, it) }
+        compressedFile.outputStream().use { configBitmap.compress(Bitmap.CompressFormat.JPEG, 40, it) }
         return compressedFile
     }
 

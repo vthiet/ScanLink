@@ -56,13 +56,18 @@ class DocumentLocalRepositoryImpl @Inject constructor(
         duplicated
     }
 
-    override fun getDocumentsFlow(): Flow<List<Document>> {
-        return documentDao.getAllDocumentsWithPages().map { list ->
+    override fun getDocumentsFlow(ownerUid: String?): Flow<List<Document>> {
+        return documentDao.getAllDocumentsWithPages(ownerUid).map { list ->
             list.map { it.toDomain() }
         }
     }
 
     override suspend fun getDocumentById(documentId: String): Result<Document?> = runCatching {
         documentDao.getDocumentWithPagesById(documentId)?.toDomain()
+    }
+
+    override suspend fun associateGuestDocuments(ownerUid: String): Result<Unit> = runCatching {
+        documentDao.associateGuestDocuments(ownerUid)
+        Unit
     }
 }

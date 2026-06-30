@@ -31,6 +31,7 @@ class FileDetailViewModel @Inject constructor(
     private val documentRepository: DocumentRepository,
     private val apiService: com.example.scanlink.core.network.ApiService,
     private val extractTextFromImageUseCase: com.example.scanlink.features.document_scanner.domain.usecases.ExtractTextFromImageUseCase,
+    private val syncDocumentUseCase: com.example.scanlink.features.document_scanner.domain.usecases.SyncDocumentUseCase,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -236,8 +237,9 @@ class FileDetailViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
+                val finalDoc = syncDocumentUseCase(document)
                 val request = com.example.scanlink.core.network.models.CreatePublicShareRequest(
-                    documentId = document.id,
+                    documentId = finalDoc.id,
                     password = password,
                     expireInDays = expireDays
                 )
@@ -247,6 +249,7 @@ class FileDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isSharingLoading = false,
+                            document = finalDoc,
                             generatedShareLink = shareLink,
                             isPublicLinkDialogVisible = false,
                             isPublicLinkSuccessVisible = true
@@ -277,8 +280,9 @@ class FileDetailViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
+                val finalDoc = syncDocumentUseCase(document)
                 val request = com.example.scanlink.core.network.models.GrantPrivatePermissionRequest(
-                    documentId = document.id,
+                    documentId = finalDoc.id,
                     shareToEmail = email,
                     role = role
                 )
@@ -287,6 +291,7 @@ class FileDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isSharingLoading = false,
+                            document = finalDoc,
                             isPrivateAccessDialogVisible = false,
                             actionMessage = "Đã cấp quyền cho $email thành công!"
                         )

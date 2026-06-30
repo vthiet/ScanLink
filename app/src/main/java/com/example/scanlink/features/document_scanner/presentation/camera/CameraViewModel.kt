@@ -38,7 +38,8 @@ class CameraViewModel @Inject constructor(
     private val createPdfUseCase: CreatePdfUseCase,
     private val createPdfFromImageUrisUseCase: CreatePdfFromImageUrisUseCase,
     private val documentRepository: com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository,
-    private val apiService: com.example.scanlink.core.network.ApiService
+    private val apiService: com.example.scanlink.core.network.ApiService,
+    private val firebaseAuth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiStateHolder())
@@ -231,7 +232,7 @@ class CameraViewModel @Inject constructor(
                     val localId = java.util.UUID.randomUUID().toString()
                     val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
                         id = localId,
-                        ownerUid = null,
+                        ownerUid = firebaseAuth.currentUser?.uid,
                         title = pdfFile.name,
                         storageUrl = null,
                         fileSize = pdfFile.length(),
@@ -328,36 +329,81 @@ class CameraViewModel @Inject constructor(
                     fileName = fileName
                 )
 
-                val now = System.currentTimeMillis()
-                val documentId = java.util.UUID.randomUUID().toString()
-                val document = com.example.scanlink.features.document_scanner.domain.entities.Document(
-                    id = documentId,
-                    ownerUid = null,
-                    title = pdfFile.name,
-                    storageUrl = null,
-                    fileSize = pdfFile.length(),
-                    extractedText = null,
-                    pdfPath = pdfFile.absolutePath,
-                    createdAt = now,
-                    updatedAt = now,
-                    isSynced = false,
-                    pageCount = imageUris.size,
-                    mimeType = "application/pdf",
-                    thumbnailPath = imageUris.firstOrNull(),
-                    lastModified = now
-                )
-                val pages = imageUris.mapIndexed { index, uri ->
-                    com.example.scanlink.features.document_scanner.domain.entities.Page(
-                        id = java.util.UUID.randomUUID().toString(),
-                        documentId = documentId,
-                        pageNumber = index + 1,
-                        imagePath = uri,
-                        ocrText = null,
-                        createdAt = now
-                    )
-                }
+                android.util.Log.d("ScanLink", "Uploading batch PDF. Size: ${pdfFile.length()} bytes")
+                val requestFile = pdfFile.asRequestBody("application/pdf".toMediaTypeOrNull())
+                val filePart = okhttp3.MultipartBody.Part.createFormData("file", pdfFile.name, requestFile)
+                val cleanTitle = pdfFile.name.substringBeforeLast(".")
+                val titlePart = okhttp3.MultipartBody.Part.createFormData("title", cleanTitle)
+                val textPart = okhttp3.MultipartBody.Part.createFormData("extractedText", "")
 
-                documentRepository.saveDocument(document, pages)
+                val response = apiService.uploadDocument(filePart, titlePart, textPart).execute()
+
+                val now = System.currentTimeMillis()
+                val finalDocId = if (response.isSuccessful && response.body()?.data != null) {
+                    val serverDoc = response.body()!!.data!!
+                    val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                        id = serverDoc.id,
+                        ownerUid = serverDoc.ownerUid,
+                        title = serverDoc.title,
+                        storageUrl = serverDoc.storageUrl,
+                        fileSize = pdfFile.length(),
+                        extractedText = null,
+                        pdfPath = pdfFile.absolutePath,
+                        createdAt = now,
+                        updatedAt = now,
+                        isSynced = true,
+                        pageCount = imageUris.size,
+                        mimeType = "application/pdf",
+                        thumbnailPath = imageUris.firstOrNull(),
+                        lastModified = now
+                    )
+                    val pages = imageUris.mapIndexed { index, uri ->
+                        com.example.scanlink.features.document_scanner.domain.entities.Page(
+                            id = java.util.UUID.randomUUID().toString(),
+                            documentId = serverDoc.id,
+                            pageNumber = index + 1,
+                            imagePath = uri,
+                            ocrText = null,
+                            createdAt = now
+                        )
+                    }
+                    documentRepository.saveDocument(newDoc, pages)
+                    serverDoc.id
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    android.util.Log.e("ScanLink", "Batch upload failed. Code: ${response.code()}, Error: $errorBody")
+
+                    // Fallback to local save
+                    val localId = java.util.UUID.randomUUID().toString()
+                    val newDoc = com.example.scanlink.features.document_scanner.domain.entities.Document(
+                        id = localId,
+                        ownerUid = firebaseAuth.currentUser?.uid,
+                        title = pdfFile.name,
+                        storageUrl = null,
+                        fileSize = pdfFile.length(),
+                        extractedText = null,
+                        pdfPath = pdfFile.absolutePath,
+                        createdAt = now,
+                        updatedAt = now,
+                        isSynced = false,
+                        pageCount = imageUris.size,
+                        mimeType = "application/pdf",
+                        thumbnailPath = imageUris.firstOrNull(),
+                        lastModified = now
+                    )
+                    val pages = imageUris.mapIndexed { index, uri ->
+                        com.example.scanlink.features.document_scanner.domain.entities.Page(
+                            id = java.util.UUID.randomUUID().toString(),
+                            documentId = localId,
+                            pageNumber = index + 1,
+                            imagePath = uri,
+                            ocrText = null,
+                            createdAt = now
+                        )
+                    }
+                    documentRepository.saveDocument(newDoc, pages)
+                    localId
+                }
 
                 _uiState.update {
                     it.copy(
@@ -367,7 +413,7 @@ class CameraViewModel @Inject constructor(
                 }
 
                 withContext(Dispatchers.Main) {
-                    onComplete(documentId)
+                    onComplete(finalDocId)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
