@@ -2,7 +2,7 @@
 
 ## **DỰ ÁN: SCANLINK (Hệ thống Quét và Quản lý Tài liệu Di động)**
 
-**Phiên bản:** 1.5
+**Phiên bản:** 1.6
 
 **Tuân thủ chuẩn:** IEEE 1016-2009 (Software Design Description)
 
@@ -16,6 +16,7 @@
 | AI Assistant | 24/06/2026 | Bổ sung chương Interface Design (Mục 5.2 & 5.3) đặc tả chi tiết 9 REST API endpoints theo tiêu chuẩn IEEE Std 1016-2009. | 1.3 |
 | AI Assistant | 24/06/2026 | Cập nhật thiết kế dữ liệu (Data Design) và sơ đồ ERD quyết định sử dụng MongoDB. | 1.4 |
 | AI Assistant | 24/06/2026 | Bổ sung tính năng đăng nhập Google Account: cập nhật luồng xác thực (5.1), ERD (thêm `providerId`), mã HTTP (thêm 409), đặc tả [INT-API-001] idempotent, bổ sung [INT-API-010]. Tạo tài liệu đặc tả riêng `Google_Sign_In_Feature_Specification.md`. | 1.5 |
+| AI Assistant | 30/06/2026 | Tích hợp thiết kế tính năng Tìm kiếm ngữ nghĩa Offline (Client-only): cập nhật sơ đồ kiến trúc di động, thiết kế cơ sở dữ liệu Room, cấu trúc lớp (Component Design) và thuật toán Cosine Similarity theo chuẩn IEEE 1016-2009. | 1.6 |
 
 ## **1. GIỚI THIỆU (INTRODUCTION)**
 
@@ -132,9 +133,19 @@ com.example.scanlink/
     │       └── ui/              # Giao diện (Activity/Fragment hoặc Compose Screens)
     │
     ├── document_scanner/        # Tính năng quét tài liệu và chỉnh sửa ảnh
-    │   ├── data/                # Chứa nguồn ảnh vật lý, tích hợp OpenCV, ML Kit
-    │   ├── domain/              # Chứa logic biến đổi phối cảnh, nhận dạng văn bản
-    │   └── presentation/        # Giao diện Camera, giao diện căn chỉnh góc méo, bộ lọc màu
+    │   ├── data/                # Chứa nguồn ảnh vật lý, tích hợp OpenCV, ML Kit, ONNX
+    │   │   ├── local/database/  # Cấu trúc CSDL Room local (entities, daos, AppDatabase)
+    │   │   ├── ocr/             # Bộ nhận diện ký tự quang học ML Kit
+    │   │   ├── engine/          # Bộ sinh embedding ONNX Runtime Mobile
+    │   │   └── repositories/    # Cài đặt repositories (DocumentLocalRepositoryImpl)
+    │   ├── domain/              # Logic nghiệp vụ xử lý tài liệu & tìm kiếm ngữ nghĩa
+    │   │   ├── entities/        # Các thực thể nghiệp vụ (Document, Page, DocumentChunk)
+    │   │   ├── repositories/    # Các Interface định nghĩa Repository
+    │   │   └── usecases/        # Use cases (OCR, PDF, SearchSemanticChunksUseCase)
+    │   └── presentation/        # Giao diện Camera, chỉnh góc, bộ lọc màu, và Tìm kiếm
+    │       ├── camera/          # Giao diện chụp ảnh tài liệu
+    │       ├── preview/         # Giao diện xem trước, xuất PDF
+    │       └── search/          # Giao diện Tìm kiếm ngữ nghĩa offline (SearchScreen)
     │
     └── file_sharing/            # Tính năng tải tài liệu lên Cloud và chia sẻ file
         ├── data/                # Gọi Spring API để đẩy file, tạo link chia sẻ
@@ -192,56 +203,150 @@ com.example.scanlink.api
 ```
 
 ## **4. THIẾT KẾ CƠ SỞ DỮ LIỆU (DATA DESIGN)**
-
-Quyết định thiết kế hệ thống chuyển từ cơ sở dữ liệu quan hệ PostgreSQL sang cơ sở dữ liệu NoSQL **MongoDB**. Việc này giúp hệ thống lưu trữ và quản lý tài liệu linh hoạt hơn nhờ cơ chế tài liệu tự mô tả (Self-describing Document). Thay vì tách rời thành nhiều bảng và thực hiện phép nối (Join) phức tạp, cấu trúc MongoDB cho phép nhúng (embed) các thông tin liên quan như liên kết chia sẻ (Shared Links) và quyền truy cập (Permissions) trực tiếp vào trong tài liệu để tối ưu hóa tốc độ truy vấn đọc.
-
-``` mermaid
-erDiagram
-    USERS {
-        string uid PK "Firebase UID (Định danh chính)"
-        string email "Định danh duy nhất"
-        string display_name "Tên hiển thị"
-        string photo_url "Đường dẫn ảnh đại diện (Google: từ Google Profile)"
-        string role "Vai trò (USER, ADMIN)"
-        boolean is_active "Trạng thái hoạt động"
-        string date_of_birth "Ngày sinh"
-        string gender "Giới tính"
-        string provider_id "Phương thức đăng nhập: password hoặc google.com"
-        date created_at "Ngày tạo"
-        date updated_at "Ngày cập nhật"
-        int storage_used "Tính bằng Bytes"
-    }
-
-    DOCUMENTS {
-        string id PK "UUID hoặc ObjectId"
-        string owner_uid FK "Liên kết với USERS.uid"
-        string title "Tiêu đề tài liệu"
-        string storage_url "Đường dẫn file trên S3"
-        int file_size "Tính bằng Bytes"
-        string extracted_text "Kết quả nhận diện OCR"
-        array shared_links "Mảng chứa các đối tượng SharedLink (Embedded)"
-        array permissions "Mảng chứa các đối tượng DocumentPermission (Embedded)"
-        date created_at "Ngày tạo"
-        date updated_at "Ngày cập nhật"
-    }
-
-    SHARED_LINK {
-        string hash_token "Dùng làm URL Parameter độc bản"
-        string password_hash "Bảo mật link (BCrypt) - Nullable"
-        date expires_at "Thời hạn hết hiệu lực - Nullable"
-        date created_at "Ngày tạo"
-    }
-
-    DOCUMENT_PERMISSION {
-        string user_uid "UID người được gán quyền"
-        string role "VIEWER hoặc EDITOR"
-    }
-
-    USERS ||--o{ DOCUMENTS : "owns"
-    DOCUMENTS ||--|{ SHARED_LINK : "embeds"
-    DOCUMENTS ||--|{ DOCUMENT_PERMISSION : "embeds"
-
-```
+ 
+-Quyết định thiết kế hệ thống chuyển từ cơ sở dữ liệu quan hệ PostgreSQL sang cơ sở dữ liệu NoSQL **MongoDB**. Việc này giúp hệ thống lưu trữ và quản lý tài liệu linh hoạt hơn nhờ cơ chế tài liệu tự mô tả (Self-describing Document). Thay vì tách rời thành nhiều bảng và thực hiện phép nối (Join) phức tạp, cấu trúc MongoDB cho phép nhúng (embed) các thông tin liên quan như liên kết chia sẻ (Shared Links) và quyền truy cập (Permissions) trực tiếp vào trong tài liệu để tối ưu hóa tốc độ truy vấn đọc.
+-
+-``` mermaid
+-erDiagram
+-    USERS {
+-        string uid PK "Firebase UID (Định danh chính)"
+-        string email "Định danh duy nhất"
+-        string display_name "Tên hiển thị"
+-        string photo_url "Đường dẫn ảnh đại diện (Google: từ Google Profile)"
+-        string role "Vai trò (USER, ADMIN)"
+-        boolean is_active "Trạng thái hoạt động"
+-        string date_of_birth "Ngày sinh"
+-        string gender "Giới tính"
+-        string provider_id "Phương thức đăng nhập: password hoặc google.com"
+-        date created_at "Ngày tạo"
+-        date updated_at "Ngày cập nhật"
+-        int storage_used "Tính bằng Bytes"
+-    }
+- 
+-    DOCUMENTS {
+-        string id PK "UUID hoặc ObjectId"
+-        string owner_uid FK "Liên kết với USERS.uid"
+-        string title "Tiêu đề tài liệu"
+-        string storage_url "Đường dẫn file trên S3"
+-        int file_size "Tính bằng Bytes"
+-        string extracted_text "Kết quả nhận diện OCR"
+-        array shared_links "Mảng chứa các đối tượng SharedLink (Embedded)"
+-        array permissions "Mảng chứa các đối tượng DocumentPermission (Embedded)"
+-        date created_at "Ngày tạo"
+-        date updated_at "Ngày cập nhật"
+-    }
+- 
+-    SHARED_LINK {
+-        string hash_token "Dùng làm URL Parameter độc bản"
+-        string password_hash "Bảo mật link (BCrypt) - Nullable"
+-        date expires_at "Thời hạn hết hiệu lực - Nullable"
+-        date created_at "Ngày tạo"
+-    }
+- 
+-    DOCUMENT_PERMISSION {
+-        string user_uid "UID người được gán quyền"
+-        string role "VIEWER hoặc EDITOR"
+-    }
+- 
+-    USERS ||--o{ DOCUMENTS : "owns"
+-    DOCUMENTS ||--|{ SHARED_LINK : "embeds"
+-    DOCUMENTS ||--|{ DOCUMENT_PERMISSION : "embeds"
+- 
+-```
++### **4.1 Thiết kế Cơ sở dữ liệu Máy chủ (Cloud Database Design - MongoDB)**
++
++Quyết định thiết kế hệ thống chuyển từ cơ sở dữ liệu quan hệ PostgreSQL sang cơ sở dữ liệu NoSQL **MongoDB** ở phía Backend Server. Việc này giúp hệ thống lưu trữ và quản lý tài liệu linh hoạt hơn nhờ cơ chế tài liệu tự mô tả (Self-describing Document). Thay vì tách rời thành nhiều bảng và thực hiện phép nối (Join) phức tạp, cấu trúc MongoDB cho phép nhúng (embed) các thông tin liên quan như liên kết chia sẻ (Shared Links) và quyền truy cập (Permissions) trực tiếp vào trong tài liệu để tối ưu hóa tốc độ truy vấn đọc.
++
++``` mermaid
++erDiagram
++    USERS {
++        string uid PK "Firebase UID (Định danh chính)"
++        string email "Định danh duy nhất"
++        string display_name "Tên hiển thị"
++        string photo_url "Đường dẫn ảnh đại diện (Google: từ Google Profile)"
++        string role "Vai trò (USER, ADMIN)"
++        boolean is_active "Trạng thái hoạt động"
++        string date_of_birth "Ngày sinh"
++        string gender "Giới tính"
++        string provider_id "Phương thức đăng nhập: password hoặc google.com"
++        date created_at "Ngày tạo"
++        date updated_at "Ngày cập nhật"
++        int storage_used "Tính bằng Bytes"
++    }
++
++    DOCUMENTS {
++        string id PK "UUID hoặc ObjectId"
++        string owner_uid FK "Liên kết với USERS.uid"
++        string title "Tiêu đề tài liệu"
++        string storage_url "Đường dẫn file trên S3"
++        int file_size "Tính bằng Bytes"
++        string extracted_text "Kết quả nhận diện OCR"
++        array shared_links "Mảng chứa các đối tượng SharedLink (Embedded)"
++        array permissions "Mảng chứa các đối tượng DocumentPermission (Embedded)"
++        date created_at "Ngày tạo"
++        date updated_at "Ngày cập nhật"
++    }
++
++    SHARED_LINK {
++        string hash_token "Dùng làm URL Parameter độc bản"
++        string password_hash "Bảo mật link (BCrypt) - Nullable"
++        date expires_at "Thời hạn hết hiệu lực - Nullable"
++        date created_at "Ngày tạo"
++    }
++
++    DOCUMENT_PERMISSION {
++        string user_uid "UID người được gán quyền"
++        string role "VIEWER hoặc EDITOR"
++    }
++
++    USERS ||--o{ DOCUMENTS : "owns"
++    DOCUMENTS ||--|{ SHARED_LINK : "embeds"
++    DOCUMENTS ||--|{ DOCUMENT_PERMISSION : "embeds"
++```
++
++### **4.2 Thiết kế Cơ sở dữ liệu Nội bộ (Android Local Database Design - Room DB)**
++
++Ứng dụng di động ScanLink thiết lập một cơ sở dữ liệu SQLite cục bộ thông qua thư viện Jetpack Room (`AppDatabase`) để quản lý tài liệu scan và phục vụ tìm kiếm ngữ nghĩa offline hoàn toàn ở Client.
++
++``` mermaid
++erDiagram
++    documents {
++        string id PK "Primary Key (UUID)"
++        string ownerUid "Firebase UID - Nullable"
++        string title "Tiêu đề tài liệu"
++        string storageUrl "URL trên cloud - Nullable"
++        long fileSize "Kích thước file"
++        string extractedText "Nội dung OCR tổng hợp - Nullable"
++        string pdfPath "Đường dẫn file PDF local - Nullable"
++        long createdAt "Thời gian tạo"
++        long updatedAt "Thời gian cập nhật"
++        boolean isSynced "Đã đồng bộ lên cloud"
++    }
++
++    pages {
++        string id PK "Primary Key (UUID)"
++        string documentId FK "Liên kết với documents.id (CASCADE DELETE)"
++        int pageNumber "Số trang"
++        string imagePath "Đường dẫn ảnh local"
++        string ocrText "Nội dung OCR của trang - Nullable"
++        long createdAt "Thời gian tạo"
++    }
++
++    document_chunks {
++        string id PK "Primary Key (UUID)"
++        string documentId FK "Liên kết với documents.id (CASCADE DELETE)"
++        int pageNumber "Số trang chứa chunk"
++        string rawText "Văn bản thô của chunk"
++        blob embedding "Vector nhúng 384 chiều (FloatArrayConverter)"
++    }
++
++    documents ||--o{ pages : "has"
++    documents ||--o{ document_chunks : "has"
++```
++
++*   **Bảng `documents`:** Lưu trữ thông tin metadata tổng quát của tài liệu khi được quét và đóng gói local.
++*   **Bảng `pages`:** Lưu trữ ảnh từng trang đã căn chỉnh, lọc màu và chứa văn bản thô trích xuất từ Google ML Kit OCR.
++*   **Bảng `document_chunks`:** Lưu trữ các đoạn phân chia nhỏ (`rawText`) từ văn bản thô của mỗi trang kèm vector nhúng 384 chiều (`embedding`). Sử dụng khóa ngoại liên kết CASCADE DELETE với bảng `documents` để đồng bộ xóa dữ liệu khi người dùng xóa tài liệu.
 
 ## **5. THIẾT KẾ GIAO TIẾP VÀ BẢO MẬT (INTERFACE & SECURITY DESIGN)**
 
@@ -705,4 +810,129 @@ sequenceDiagram
 
 ---
 
-**[KẾT THÚC TÀI LIỆU ĐẶC TẢ THIẾT KẾ - SDD v1.5]**
+### **5.4 Thiết kế Tìm kiếm Ngữ nghĩa Offline (Offline Semantic Search Design - Client-only)**
+
+Hệ thống cung cấp chức năng Tìm kiếm Ngữ nghĩa Offline chạy hoàn toàn ở phía Client (di động) để bảo mật dữ liệu tuyệt đối cho người dùng. Phần này đặc tả thiết kế chi tiết tính năng theo chuẩn **IEEE Std 1016-2009**.
+
+#### **5.4.1 Luồng tuần tự hệ thống (Sequence Diagrams)**
+
+##### **5.4.1.1 Luồng nạp dữ liệu và sinh Vector nhúng (Ingestion Sequence)**
+
+Quy trình tự động phân đoạn văn bản và sinh vector nhúng sau khi quét tài liệu (OCR):
+
+```mermaid
+sequenceDiagram
+    participant CameraUI as DocumentScannerUI
+    participant OCR as GoogleMLKitOCR
+    participant Repo as DocumentLocalRepositoryImpl
+    participant Engine as ONNXEmbeddingEngine
+    participant Room as RoomAppDatabase
+
+    CameraUI->>OCR: Gửi ảnh tài liệu đã quét
+    OCR-->>CameraUI: Trả về extractedText theo trang
+    CameraUI->>Repo: saveDocument(Document, Pages)
+    activate Repo
+    Repo->>Room: Lưu DocumentEntity & PageEntity (IO Thread)
+    
+    Note over Repo,Engine: Bắt đầu tiến trình sinh Embedding (Default Thread)
+    Repo->>Repo: Text Chunking (Kích thước: 100-150 từ, Overlap: 20-30 từ)
+    loop Với từng đoạn Chunk
+        Repo->>Engine: getEmbedding(chunkText)
+        Engine->>Engine: Run ONNX Inference (bge-micro-v2)
+        Engine-->>Repo: Trả về FloatArray (384 dimensions)
+    end
+    
+    Repo->>Room: insertChunks(List<DocumentChunkEntity>)
+    Room-->>Repo: Xác nhận lưu trữ thành công
+    deactivate Repo
+    Repo-->>CameraUI: Cập nhật trạng thái hoàn thành trên UI
+```
+
+##### **5.4.1.2 Luồng tìm kiếm ngữ nghĩa (Search & Retrieval Sequence)**
+
+Quy trình xử lý truy vấn tìm kiếm của người dùng và tính toán độ tương đồng vector:
+
+```mermaid
+sequenceDiagram
+    participant UI as SearchScreen (Compose)
+    participant VM as SearchViewModel
+    participant UC as SearchSemanticChunksUseCase
+    participant Engine as ONNXEmbeddingEngine
+    participant Room as RoomAppDatabase
+
+    UI->>VM: Nhập câu hỏi tìm kiếm (e.g., "Hóa đơn VAT tháng 6")
+    activate VM
+    VM->>VM: Cập nhật SearchState.Loading
+    
+    VM->>UC: invoke(queryText) (Dispatchers.Default)
+    activate UC
+    UC->>Engine: getEmbedding(queryText)
+    Engine->>Engine: Run ONNX Inference (bge-micro-v2)
+    Engine-->>UC: Trả về Query Vector (FloatArray)
+    
+    UC->>Room: getAllChunks() (Dispatchers.IO)
+    Room-->>UC: Trả về List<DocumentChunkEntity>
+    
+    Note over UC: Tính toán Cosine Similarity trong bộ nhớ<br/>(Dispatchers.Default)
+    UC->>UC: So khớp vector và sắp xếp kết quả (similarity score >= 0.6)
+    UC-->>VM: Trả về List<SearchResult>
+    deactivate UC
+    
+    VM->>VM: Cập nhật SearchState.Success(results)
+    VM-->>UI: Hiển thị kết quả lên LazyColumn (Highlight khớp ngữ cảnh)
+    deactivate VM
+```
+
+#### **5.4.2 Đặc tả giao diện thành phần (Component Interface Specification)**
+
+##### **5.4.2.1 Tầng Data (Data Layer)**
+
+*   **`DocumentChunkEntity`**: Thực thể lưu trữ trong Room Database:
+    *   `id: String` (Primary Key - UUID)
+    *   `documentId: String` (Foreign Key - Cascades on Delete)
+    *   `pageNumber: Int`
+    *   `rawText: String`
+    *   `embedding: FloatArray`
+*   **`FloatArrayConverter`**: Room `@TypeConverter` mã hóa `FloatArray` sang `ByteArray` sử dụng `ByteBuffer` (LITTLE_ENDIAN) và ngược lại nhằm tối ưu bộ nhớ.
+*   **`DocumentChunkDao`**: Interface định nghĩa thao tác cơ sở dữ liệu Room:
+    *   `suspend fun insertChunks(chunks: List<DocumentChunkEntity>)`
+    *   `suspend fun deleteChunksByDocumentId(documentId: String)`
+    *   `suspend fun getAllChunks(): List<DocumentChunkEntity>`
+
+##### **5.4.2.2 Tầng Domain (Domain Layer)**
+
+*   **`ISemanticSearchRepository`**: Interface định nghĩa các hành vi nghiệp vụ của công cụ tìm kiếm:
+    *   `suspend fun generateEmbedding(text: String): Result<FloatArray>`
+    *   `suspend fun saveChunks(documentId: String, pageNumber: Int, text: String): Result<Unit>`
+    *   `suspend fun searchSimilarChunks(queryText: String, threshold: Float = 0.6f): Result<List<SearchResult>>`
+
+##### **5.4.2.3 Tầng Presentation (Presentation Layer)**
+
+*   **`SearchViewModel`**:
+    *   *State:* `StateFlow<SearchUiState>` với các trạng thái `Idle`, `Loading`, `Success(List<SearchResultItem>)`, `Empty`, `Error(message)`.
+    *   *Method:* `fun onSearchQueryChanged(query: String)` - được debounce 300ms trước khi kích hoạt luồng tìm kiếm để tránh kích hoạt inference quá nhiều lần liên tiếp.
+
+#### **5.4.3 Thiết kế Thuật toán và So khớp Vector (Algorithmic Design)**
+
+Inference của mô hình Embedding nhúng đầu ra một vector 384 chiều chuẩn hóa. Độ tương đồng ngữ nghĩa giữa vector truy vấn $\mathbf{Q}$ và vector đoạn văn bản $\mathbf{C}$ được tính bằng công thức **Cosine Similarity**:
+
+$$\text{Cosine Similarity}(\mathbf{Q}, \mathbf{C}) = \frac{\mathbf{Q} \cdot \mathbf{C}}{\|\mathbf{Q}\| \|\mathbf{C}\|} = \frac{\sum_{i=1}^{n} Q_i C_i}{\sqrt{\sum_{i=1}^{n} Q_i^2} \sqrt{\sum_{i=1}^{n} C_i^2}}$$
+
+Do vector đầu ra của các mô hình embedding hiện đại (như `bge-micro-v2` hoặc `all-MiniLM-L6-v2`) thường đã được chuẩn hóa L2 (tức là $\|\mathbf{Q}\| = 1$ và $\|\mathbf{C}\| = 1$), công thức tính độ tương đồng thu gọn lại thành phép tính **Tích vô hướng (Dot Product)**, giúp tối ưu hóa hiệu năng tính toán cực cao trên CPU thiết bị di động:
+
+```kotlin
+fun calculateCosineSimilarity(vectorA: FloatArray, vectorB: FloatArray): Float {
+    require(vectorA.size == vectorB.size) { "Vectors must have the same length" }
+    var dotProduct = 0.0f
+    for (i in vectorA.indices) {
+        dotProduct += vectorA[i] * vectorB[i]
+    }
+    return dotProduct
+}
+```
+
+*   **Độ phức tạp tính toán:** $\mathcal{O}(D \cdot M)$ với $D$ là số chiều vector (384) và $M$ là số lượng chunks. Với $M = 5000$ chunks, tổng số phép tính nhân-cộng là $1.92 \times 10^6$ phép tính, CPU di động hiện đại xử lý mất ít hơn **10ms**.
+
+---
+
+**[KẾT THÚC TÀI LIỆU ĐẶC TẢ THIẾT KẾ - SDD v1.6]**

@@ -38,6 +38,12 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideDocumentChunkDao(database: AppDatabase): com.example.scanlink.features.document_scanner.data.local.database.dao.DocumentChunkDao {
+        return database.documentChunkDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideDocumentLocalRepository(
         documentDao: DocumentDao
     ): IDocumentLocalRepository {
