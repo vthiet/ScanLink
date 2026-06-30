@@ -23,6 +23,7 @@ import com.example.scanlink.core.ui.model.MenuItemData
 fun ProfileMenuSection(
     title: String,
     items: List<MenuItemData>,
+    onItemClick: (MenuItemData) -> Unit = {},
     onToggleClick: (Boolean) -> Unit = {}
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -48,6 +49,8 @@ fun ProfileMenuSection(
                         onClick = {
                             if (item.isToggle) {
                                 onToggleClick(item.toggleState)
+                            } else {
+                                onItemClick(item)
                             }
                         }
                     )

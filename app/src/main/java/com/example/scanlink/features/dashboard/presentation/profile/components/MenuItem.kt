@@ -38,7 +38,6 @@ fun MenuItem(
             .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon
         Box(
             modifier = Modifier
                 .size(34.dp)
@@ -56,14 +55,14 @@ fun MenuItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Text Content
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.title,
-                color = if (item.title.contains("Đăng xuất"))
+                color = if (item.title.contains("Đăng xuất")) {
                     MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.onSurface,
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -74,15 +73,17 @@ fun MenuItem(
             )
         }
 
-        // Badge or Toggle
         if (item.badge != null) {
             Text(
                 text = item.badge,
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .background(
-                        color = if (item.badge == "2FA") Color(0xFFE8722A).copy(alpha = 0.2f)
-                        else Color(0xFF00CFA4).copy(alpha = 0.2f),
+                        color = if (item.badge == "2FA") {
+                            Color(0xFFE8722A).copy(alpha = 0.2f)
+                        } else {
+                            Color(0xFF00CFA4).copy(alpha = 0.2f)
+                        },
                         shape = RoundedCornerShape(6.dp)
                     )
                     .padding(horizontal = 8.dp, vertical = 2.dp),

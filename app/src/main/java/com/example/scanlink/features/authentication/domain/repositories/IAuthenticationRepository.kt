@@ -21,6 +21,8 @@ interface IAuthenticationRepository {
 
     suspend fun getCurrentUser(): Result<UserEntity>
 
+    suspend fun updateDisplayName(displayName: String): Result<UserEntity>
+
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 
     suspend fun getIdToken(): Result<String>
