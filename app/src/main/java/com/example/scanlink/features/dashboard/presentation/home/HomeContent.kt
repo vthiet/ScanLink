@@ -43,6 +43,7 @@ fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
     onFileClick: (String) -> Unit = {},
     onProfileClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -65,8 +66,8 @@ fun HomeContent(
     ) {
         AppHeader(
             showSearchBar = true,
-            onAvatarClick = onProfileClick
-        )
+            onAvatarClick = onProfileClick,
+            onSearchClick = onSearchClick)
 
         Spacer(modifier = Modifier.height(12.dp))
 

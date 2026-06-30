@@ -7,6 +7,7 @@ import com.example.scanlink.features.document_scanner.domain.entities.Document
 import com.example.scanlink.features.document_scanner.domain.entities.Page
 import com.example.scanlink.features.document_scanner.domain.repositories.DocumentRepository
 import com.example.scanlink.features.document_scanner.domain.repositories.IDocumentLocalRepository
+import com.example.scanlink.features.document_scanner.domain.repositories.ISemanticSearchRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -14,13 +15,25 @@ import javax.inject.Inject
 import kotlin.collections.map
 
 class DocumentLocalRepositoryImpl @Inject constructor(
-    private val documentDao: DocumentDao
+    private val documentDao: DocumentDao,
+    private val semanticSearchRepository: ISemanticSearchRepository
 ) : IDocumentLocalRepository, DocumentRepository {
 
     override suspend fun saveDocument(document: Document, pages: List<Page>): Result<Unit> = runCatching {
         val documentEntity = document.toEntity()
         val pageEntities = pages.map { it.toEntity() }
         documentDao.saveDocumentWithPages(documentEntity, pageEntities)
+
+        // Clear existing chunks for this document to avoid duplicates
+        semanticSearchRepository.clearIndexForDocument(document.id)
+
+        // Index pages for semantic search if they contain OCR text
+        pages.forEach { page ->
+            val text = page.ocrText
+            if (!text.isNullOrBlank()) {
+                semanticSearchRepository.indexDocument(document.id, page.pageNumber, text)
+            }
+        }
         Unit
     }
 
@@ -52,17 +65,22 @@ class DocumentLocalRepositoryImpl @Inject constructor(
                 )
             }
         )
-        documentDao.saveDocumentWithPages(duplicated.toEntity(), duplicated.pages.map { it.toEntity() })
+        saveDocument(duplicated, duplicated.pages).getOrThrow()
         duplicated
     }
 
-    override fun getDocumentsFlow(): Flow<List<Document>> {
-        return documentDao.getAllDocumentsWithPages().map { list ->
+    override fun getDocumentsFlow(ownerUid: String?): Flow<List<Document>> {
+        return documentDao.getAllDocumentsWithPages(ownerUid).map { list ->
             list.map { it.toDomain() }
         }
     }
 
     override suspend fun getDocumentById(documentId: String): Result<Document?> = runCatching {
         documentDao.getDocumentWithPagesById(documentId)?.toDomain()
+    }
+
+    override suspend fun associateGuestDocuments(ownerUid: String): Result<Unit> = runCatching {
+        documentDao.associateGuestDocuments(ownerUid)
+        Unit
     }
 }

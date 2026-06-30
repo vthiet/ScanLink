@@ -1,120 +1,126 @@
 package com.example.scanlink.features.document_scanner.presentation.transfer
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferActionSection
-import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadAreaCard
-import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadingFileItem
-import com.example.scanlink.core.ui.model.FileType
-import com.example.scanlink.core.ui.model.RecentFile
-import com.example.scanlink.features.file_sharing.presentation.model.transfer.TransferTab
-import com.example.scanlink.core.ui.components.card.RecentFileItem
-import com.example.scanlink.core.ui.components.header.AppHeader
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.PrivateShareContent
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.PublicShareContent
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferStatisticsCard
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferTabBar
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.TransferTopBar
+import com.example.scanlink.features.document_scanner.presentation.transfer.component.UploadContent
+import com.example.scanlink.features.document_scanner.presentation.transfer.model.SharePermission
+import com.example.scanlink.features.document_scanner.presentation.transfer.model.TransferTab
+import com.example.scanlink.features.document_scanner.presentation.transfer.model.TransferUiState
 
 @Composable
 fun TransferContent(
-    paddingValues: PaddingValues = PaddingValues(0.dp),
-    viewModel: TransferViewModel = hiltViewModel(),
-    onProfileClick: () -> Unit = {}
+    uiState: TransferUiState,
+    snackbarHostState: SnackbarHostState,
+    onTabSelected: (TransferTab) -> Unit,
+    onUploadFile: (Uri) -> Unit,
+    onRetryUpload: (String) -> Unit,
+    onCancelUpload: (String) -> Unit,
+    onPublicDocumentSelected: (String) -> Unit,
+    onPublicPasswordChange: (String) -> Unit,
+    onPublicExpireDaysChange: (String) -> Unit,
+    onGeneratePublicLink: () -> Unit,
+    onCopyPublicLink: (String) -> Unit,
+    onDisablePublicLink: (String) -> Unit,
+    onPrivateDocumentSelected: (String) -> Unit,
+    onPrivateEmailChange: (String) -> Unit,
+    onPrivatePermissionChange: (SharePermission) -> Unit,
+    onSharePrivateAccess: () -> Unit,
+    onRemovePrivateAccess: (String) -> Unit,
+    onChangePrivatePermission: (String, SharePermission) -> Unit
 ) {
-    val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            viewModel.uploadFile(uri)
-        }
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let(onUploadFile)
     }
 
-    LaunchedEffect(uiState.actionMessage) {
-        uiState.actionMessage?.let {
-            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show()
-            viewModel.consumeActionMessage()
-        }
-    }
-
-    var selectedTab by remember { mutableStateOf(TransferTab.Upload) }
-
-    val uploadingFiles = uiState.uploadingFiles
-    val recentFiles = uiState.recentFiles
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(paddingValues)
-    ) {
-        AppHeader(
-            showSearchBar = true,
-            onAvatarClick = onProfileClick
-        )
-
-        TransferActionSection(
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it }
-        )
-
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { TransferTopBar() }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(8.dp)) }
-
-            // Khu vực Upload
             item {
-                UploadAreaCard(onSelectFileClick = { launcher.launch("*/*") })
-            }
-
-            // Đang tải lên
-            if (uploadingFiles.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "ĐANG TẢI LÊN",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                items(uploadingFiles) { file ->
-                    UploadingFileItem(file = file)
-                }
-            }
-
-            // Gần đây
-            item {
-                Text(
-                    text = "GẦN ĐÂY",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                TransferStatisticsCard(
+                    totalUploaded = uiState.totalUploaded,
+                    publicLinks = uiState.publicLinks,
+                    sharedUsers = uiState.sharedUsers
                 )
             }
-            items(recentFiles) { file ->
-                RecentFileItem(file = file)
+            item {
+                TransferTabBar(
+                    selectedTab = uiState.selectedTab,
+                    onTabSelected = onTabSelected
+                )
             }
+            item {
+                AnimatedContent(
+                    targetState = uiState.selectedTab,
+                    label = "TransferTabContent"
+                ) { tab ->
+                    when (tab) {
+                        TransferTab.Upload -> UploadContent(
+                            state = uiState.uploadState,
+                            onSelectFileClick = { filePicker.launch("*/*") },
+                            onRetry = onRetryUpload,
+                            onCancel = onCancelUpload
+                        )
 
-            item { Spacer(modifier = Modifier.height(100.dp)) }
+                        TransferTab.PublicShare -> PublicShareContent(
+                            documents = uiState.documents,
+                            state = uiState.publicShareState,
+                            onDocumentSelected = onPublicDocumentSelected,
+                            onPasswordChange = onPublicPasswordChange,
+                            onExpireDaysChange = onPublicExpireDaysChange,
+                            onGenerateLink = onGeneratePublicLink,
+                            onCopyLink = onCopyPublicLink,
+                            onDisableLink = onDisablePublicLink
+                        )
+
+                        TransferTab.PrivateShare -> PrivateShareContent(
+                            documents = uiState.documents,
+                            state = uiState.privateShareState,
+                            onDocumentSelected = onPrivateDocumentSelected,
+                            onEmailChange = onPrivateEmailChange,
+                            onPermissionChange = onPrivatePermissionChange,
+                            onShare = onSharePrivateAccess,
+                            onRemoveAccess = onRemovePrivateAccess,
+                            onChangePermission = onChangePrivatePermission
+                        )
+                    }
+                }
+            }
+            item {
+                Spacer(
+                    modifier = Modifier.height(80.dp)
+                )
+            }
         }
     }
 }

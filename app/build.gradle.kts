@@ -136,6 +136,11 @@ dependencies {
     implementation(libs.opencv)
 
     // =========================================================
+    // ONNX RUNTIME
+    // =========================================================
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.1")
+
+    // =========================================================
     // ROOM DATABASE
     // =========================================================
     implementation(libs.androidx.room.runtime)

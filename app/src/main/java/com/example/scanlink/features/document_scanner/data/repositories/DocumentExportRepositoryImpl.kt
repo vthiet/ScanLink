@@ -21,7 +21,7 @@ class DocumentExportRepositoryImpl @Inject constructor() : IDocumentExportReposi
         const val A4_WIDTH = 595
         const val A4_HEIGHT = 842
         const val PAGE_MARGIN = 32f
-        const val MAX_BITMAP_DIMENSION = 2000
+        const val MAX_BITMAP_DIMENSION = 700
     }
 
     override fun createPdfFromImageUris(

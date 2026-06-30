@@ -18,6 +18,7 @@ import com.example.scanlink.features.document_scanner.presentation.camera.Camera
 import com.example.scanlink.features.document_scanner.presentation.file_detail.FileDetailScreen
 import com.example.scanlink.features.document_scanner.presentation.ocr.OcrResultScreen
 import com.example.scanlink.features.document_scanner.presentation.preview.PreviewScreen
+import com.example.scanlink.features.document_scanner.presentation.search.SearchScreen
 import com.example.scanlink.features.document_scanner.presentation.transfer.TransferScreen
 import com.example.scanlink.features.file_sharing.presentation.history.HistoryScreen
 import com.example.scanlink.features.file_sharing.presentation.scan.ScanScreen
@@ -44,6 +45,17 @@ fun AppNavGraph(
                     navController.navigate(Screen.Profile.route) {
                         launchSingleTop = true
                     }
+                onSearchClick = {
+                    navController.navigate(Screen.Search.route)
+                }
+            )
+        }
+
+        composable(Screen.Search.route) {
+            SearchScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDocument = { documentId, _ ->
+                    navController.navigate(Screen.FileDetail.createRoute(documentId))
                 }
             )
         }
@@ -56,6 +68,10 @@ fun AppNavGraph(
                     }
                 }
             )
+        }
+
+        composable(Screen.Transfer.tabRoute) {
+            TransferScreen()
         }
 
         composable("scan") {
@@ -81,7 +97,13 @@ fun AppNavGraph(
 
         composable(Screen.FileDetail.route) {
             FileDetailScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onOpenPublicShare = { documentId ->
+                    navController.navigate(Screen.Transfer.createRoute("public", documentId))
+                },
+                onOpenPrivateShare = { documentId ->
+                    navController.navigate(Screen.Transfer.createRoute("private", documentId))
+                }
             )
         }
 

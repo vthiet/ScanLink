@@ -42,8 +42,11 @@ interface DocumentDao {
     suspend fun renameDocument(documentId: String, title: String, updatedAt: Long): Int
 
     @Transaction
-    @Query("SELECT * FROM documents ORDER BY updatedAt DESC")
-    fun getAllDocumentsWithPages(): Flow<List<DocumentWithPages>>
+    @Query("SELECT * FROM documents WHERE (:ownerUid IS NOT NULL AND ownerUid = :ownerUid) OR (:ownerUid IS NULL AND ownerUid IS NULL) ORDER BY updatedAt DESC")
+    fun getAllDocumentsWithPages(ownerUid: String?): Flow<List<DocumentWithPages>>
+
+    @Query("UPDATE documents SET ownerUid = :ownerUid WHERE ownerUid IS NULL")
+    suspend fun associateGuestDocuments(ownerUid: String): Int
 
     @Transaction
     @Query("SELECT * FROM documents WHERE id = :documentId")

@@ -43,8 +43,7 @@ import coil.compose.AsyncImage
 fun AppHeader(
     modifier: Modifier = Modifier,
     showSearchBar: Boolean = true,
-    onAvatarClick: () -> Unit = {},
-    viewModel: HeaderViewModel = hiltViewModel()
+    onSearchClick: () -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,7 +92,22 @@ fun AppHeader(
         Spacer(modifier = Modifier.width(12.dp))
 
         if (showSearchBar) {
-            var searchText by remember { mutableStateOf("") }
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable(onClick = onSearchClick)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Tìm kiếm...",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f)
+                )
 
             BasicTextField(
                 value = searchText,

@@ -4,7 +4,14 @@ import android.net.Uri
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
-    object Transfer : Screen("transfer")
+    object Search : Screen("search")
+    object Transfer : Screen("transfer") {
+        const val tabRoute = "transfer/{tab}/{documentId}"
+
+        fun createRoute(tab: String, documentId: String? = null): String {
+            return "transfer/${Uri.encode(tab)}/${Uri.encode(documentId ?: "none")}"
+        }
+    }
     object History : Screen("history")
     object Profile : Screen("profile")
     object Camera : Screen("camera")

@@ -24,7 +24,8 @@ data class HistoryUiState(
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    private val documentRepository: DocumentRepository
+    private val documentRepository: DocumentRepository,
+    private val firebaseAuth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HistoryUiState())
@@ -35,8 +36,12 @@ class HistoryViewModel @Inject constructor(
     }
 
     private fun loadHistory() {
+        val currentUid = firebaseAuth.currentUser?.uid
         viewModelScope.launch {
-            documentRepository.getDocumentsFlow().collect { docs ->
+            if (currentUid != null) {
+                documentRepository.associateGuestDocuments(currentUid)
+            }
+            documentRepository.getDocumentsFlow(currentUid).collect { docs ->
                 val grouped = groupDocumentsByDate(docs)
                 _uiState.update { it.copy(groupedFiles = grouped) }
             }

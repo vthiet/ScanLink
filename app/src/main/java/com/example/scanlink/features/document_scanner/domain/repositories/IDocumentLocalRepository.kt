@@ -9,8 +9,9 @@ interface IDocumentLocalRepository {
     suspend fun deleteDocument(documentId: String): Result<Unit>
     suspend fun renameDocument(documentId: String, title: String): Result<Unit>
     suspend fun duplicateDocument(documentId: String): Result<Document?>
-    fun getDocumentsFlow(): Flow<List<Document>>
+    fun getDocumentsFlow(ownerUid: String?): Flow<List<Document>>
     suspend fun getDocumentById(documentId: String): Result<Document?>
+    suspend fun associateGuestDocuments(ownerUid: String): Result<Unit>
 }
 
 interface DocumentRepository : IDocumentLocalRepository
